@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		09D395892F0DF2B40030F711 /* HRT in Frameworks */ = {isa = PBXBuildFile; productRef = 09D395882F0DF2B40030F711 /* HRT */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXFileReference section */
 		0948A9102F0B72C50060F3C6 /* HOSTESS Reference Technology.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "HOSTESS Reference Technology.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -23,6 +27,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09D395892F0DF2B40030F711 /* HRT in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -65,6 +70,7 @@
 			);
 			name = "HOSTESS Reference Technology";
 			packageProductDependencies = (
+				09D395882F0DF2B40030F711 /* HRT */,
 			);
 			productName = "HOSTESS Reference Technology";
 			productReference = 0948A9102F0B72C50060F3C6 /* HOSTESS Reference Technology.app */;
@@ -94,6 +100,9 @@
 			);
 			mainGroup = 0948A9072F0B72C50060F3C6;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				09D395872F0DF2B40030F711 /* XCRemoteSwiftPackageReference "HOSTESS-Reference-Toolkit" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0948A9112F0B72C50060F3C6 /* Products */;
 			projectDirPath = "";
@@ -351,6 +360,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		09D395872F0DF2B40030F711 /* XCRemoteSwiftPackageReference "HOSTESS-Reference-Toolkit" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git";
+			requirement = {
+				branch = feature/MVP;
+				kind = branch;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		09D395882F0DF2B40030F711 /* HRT */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 09D395872F0DF2B40030F711 /* XCRemoteSwiftPackageReference "HOSTESS-Reference-Toolkit" */;
+			productName = HRT;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 0948A9082F0B72C50060F3C6 /* Project object */;
 }

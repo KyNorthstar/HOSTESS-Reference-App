@@ -1,0 +1,141 @@
+{
+  "originHash" : "5f585334d8fbd2a35a834fe7c5e5dd1a9471f876f370e5140805af7cceecb223",
+  "pins" : [
+    {
+      "identity" : "hostess-reference-toolkit",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git",
+      "state" : {
+        "branch" : "feature/MVP",
+        "revision" : "87f89a051596c558ca77d55867340300b064ea8c"
+      }
+    },
+    {
+      "identity" : "shelf",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:KyNorthstar/SHELF.git",
+      "state" : {
+        "branch" : "production",
+        "revision" : "efa6f71362399172ca6fda3aa397bd41dc13c380"
+      }
+    },
+    {
+      "identity" : "swift-argument-parser",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/apple/swift-argument-parser.git",
+      "state" : {
+        "revision" : "c5d11a805e765f52ba34ec7284bd4fcd6ba68615",
+        "version" : "1.7.0"
+      }
+    },
+    {
+      "identity" : "swift-function-tools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Function-Tools.git",
+      "state" : {
+        "revision" : "a854f4ed89b7e404019b5a09d24e067acc15432d",
+        "version" : "1.2.4"
+      }
+    },
+    {
+      "identity" : "swift-lazy-containers",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Lazy-Containers.git",
+      "state" : {
+        "revision" : "360a35c98992fc53739e884fb0c48e988710fa92",
+        "version" : "4.1.0"
+      }
+    },
+    {
+      "identity" : "swift-optional-tools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Optional-Tools.git",
+      "state" : {
+        "revision" : "b02158c4563570293cccb9dbe606f066b1b69bf2",
+        "version" : "1.2.0"
+      }
+    },
+    {
+      "identity" : "swift-range-tools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Range-Tools.git",
+      "state" : {
+        "revision" : "8efcac712d0bd765ac903cb9fd27cc49b6b4ce58",
+        "version" : "1.2.1"
+      }
+    },
+    {
+      "identity" : "swift-safe-collection-access",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Safe-Collection-Access.git",
+      "state" : {
+        "revision" : "fef8e158f44daab66d24cf364a1b441bb64ade39",
+        "version" : "2.3.0"
+      }
+    },
+    {
+      "identity" : "swift-safe-pointer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Safe-Pointer.git",
+      "state" : {
+        "revision" : "a71a39d19275d90e13f362c3d23163dc41318d85",
+        "version" : "2.1.3"
+      }
+    },
+    {
+      "identity" : "swift-semver",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:RougeWare/Swift-SemVer.git",
+      "state" : {
+        "revision" : "adcdc0836253c9bbb5b337eaa9d87553012ae248",
+        "version" : "3.0.0-Beta.5"
+      }
+    },
+    {
+      "identity" : "swift-serializationtools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-SerializationTools.git",
+      "state" : {
+        "revision" : "4d151e1513b04da2ddc9fe464352e4070f7d992f",
+        "version" : "1.1.1"
+      }
+    },
+    {
+      "identity" : "swift-simple-logging",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-Simple-Logging",
+      "state" : {
+        "revision" : "efdee028f383b0f3c39646a76e16bdd30693f53b",
+        "version" : "0.5.2"
+      }
+    },
+    {
+      "identity" : "swift-string-integer-access",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-String-Integer-Access.git",
+      "state" : {
+        "revision" : "595374e76274a7e951ba183fdd7f443801091d14",
+        "version" : "2.1.0"
+      }
+    },
+    {
+      "identity" : "swift-todo",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/Swift-TODO.git",
+      "state" : {
+        "revision" : "b8cd5bfb0d682f2ab525c9352ffd951d4d82edfd",
+        "version" : "1.1.0"
+      }
+    },
+    {
+      "identity" : "uuidtools",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/RougeWare/UuidTools.git",
+      "state" : {
+        "revision" : "dbd634bbdda3e2b3b428eb6580f6244585b99652",
+        "version" : "0.2.1"
+      }
+    }
+  ],
+  "version" : 3
+}
