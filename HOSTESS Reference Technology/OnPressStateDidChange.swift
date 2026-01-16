@@ -33,7 +33,7 @@ private struct _OnPressStateDidChange: ViewModifier {
             }
             .onEnded { value in
                 let inside = frame.contains(value.location)
-                pressState = .released(inside: inside)
+                pressState = .released(inside: inside, modifiers: .init(NSEvent.modifierFlags))
                 
                 Task { @MainActor in
                     try? await Task.sleep(for: postReleaseUpdateDelay)
@@ -46,7 +46,7 @@ private struct _OnPressStateDidChange: ViewModifier {
             .gesture(pressGesture)
             .onHover { hovering in
                 if !hovering && pressState == .pressed {
-                    pressState = .released(inside: false)
+                    pressState = .released(inside: false, modifiers: .init(NSEvent.modifierFlags))
                     
                     Task { @MainActor in
                         try? await Task.sleep(for: postReleaseUpdateDelay)
@@ -68,7 +68,7 @@ public enum PressState: Equatable {
     case released(inside: Bool, modifiers: Modifiers)
     
     
-    public struct Modifiers: AutoOptionSet, Equatable {
+    public struct Modifiers: OptionSet, Equatable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
         
@@ -79,7 +79,18 @@ public enum PressState: Equatable {
         public static let command = Self(rawValue: 1 << 3)
         #endif
     }
+}
 
+
+
+public extension PressState.Modifiers {
+    init(_ nsEventModifiers: NSEvent.ModifierFlags) {
+        self.init(rawValue: 0)
+        if nsEventModifiers.contains(.shift) { self.insert(.shift) }
+        if nsEventModifiers.contains(.control) { self.insert(.control) }
+        if nsEventModifiers.contains(.option) { self.insert(.option) }
+        if nsEventModifiers.contains(.command) { self.insert(.command) }
+    }
 }
 
 

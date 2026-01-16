@@ -47,8 +47,8 @@ struct ProgressiveCheckbox: View {
     var body: some View {
         let diameter = self.diameter
         
-        Rectangle()
-            .fill(.clear)
+        Circle()
+            .fill(Color.gray.opacity(0.001))
             .frame(width: diameter, height: diameter)
             .overlay {
                 let strokeThickness = self.strokeThickness
@@ -74,7 +74,12 @@ struct ProgressiveCheckbox: View {
                     break
                     
                 case .released(inside: true, modifiers: let modifiers):
-                    completion.toggle()
+                    if modifiers.contains(.option) {
+                        completion.toggle(withBehavior: .toggleDroppedAndNotStarted)
+                    }
+                    else {
+                        completion.toggle()
+                    }
                 }
             }
     }
@@ -187,9 +192,29 @@ private extension ProgressiveCheckbox {
 extension ProgressiveCheckbox {
     struct Colors {
         let notStarted: Color
-        let inProgress: (start: Color, furtherStages: [Color])
+        let inProgress: InProgress
         let complete: Color
         let dropped: Color
+        
+        
+        
+        public struct InProgress {
+            let start: Color
+            let furtherStages: [Color]
+        }
+    }
+}
+
+
+
+extension ProgressiveCheckbox.Colors.InProgress {
+    var allColors: [Color] {
+        [start] + furtherStages
+    }
+    
+    
+    var end: Color {
+        furtherStages.last ?? start
     }
 }
 
@@ -199,25 +224,27 @@ extension ProgressiveCheckbox.Colors {
     func color(for completion: HostessTask.Completion) -> Color {
         switch completion {
         case .notStarted:
-            return notStarted
+            notStarted
             
         case .inProgress(percentage: 0):
-            return inProgress.start
+            inProgress.start
             
-        case .inProgress(percentage: let progress):
+        case .inProgress(percentage: 1):
+            inProgress.end
+            
+        case .inProgress(percentage: let percentage):
             if self.inProgress.furtherStages.isEmpty {
-                return inProgress.start
+                inProgress.start
             }
             else {
-                // TODO: Gradient interpolation between the other colors
-                return inProgress.start
+                interpolateColor(from: inProgress.allColors, samplingAt: percentage)
             }
             
         case .complete:
-            return complete
+            complete
             
         case .dropped:
-            return notStarted
+            dropped
         }
     }
 }
@@ -227,8 +254,8 @@ extension ProgressiveCheckbox.Colors {
 extension ProgressiveCheckbox.Colors {
     static var `default`: Self {
         Self(
-            notStarted: .secondary,
-            inProgress: (start: .primary, furtherStages: []),
+            notStarted: .primary,
+            inProgress: InProgress(start: .primary, furtherStages: []),
             complete: .secondary,
             dropped: .secondary
         )
@@ -246,7 +273,12 @@ extension ProgressiveCheckbox.Colors {
     var progress: CGFloat = 0.2
     
     VStack(alignment: .leading, spacing: 0) {
-        ProgressiveCheckbox(completion: $topCheckboxCompletion)
+        HStack {
+            ProgressiveCheckbox(completion: $topCheckboxCompletion)
+            
+            Text("\(topCheckboxCompletion)")
+        }
+        
         HStack {
             ProgressiveCheckbox(completion: .constant(.inProgress(percentage: progress)))
             Slider(

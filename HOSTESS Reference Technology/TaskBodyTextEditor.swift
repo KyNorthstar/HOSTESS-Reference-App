@@ -29,6 +29,7 @@ struct TaskBodyTextEditor: NSViewRepresentable {
     var minHeight: CGFloat = 20
     var maxHeight: CGFloat = .infinity
     
+    
     func makeNSView(context: Context) -> NSTextView {
         let textView = NSTextView()
         textView.isVerticallyResizable = false
@@ -39,6 +40,7 @@ struct TaskBodyTextEditor: NSViewRepresentable {
         textView.textContainer?.widthTracksTextView = true
         return textView
     }
+    
     
     func updateNSView(_ nsView: NSViewType, context: Context) {
         let attributedText = NSAttributedString(text)
@@ -67,9 +69,11 @@ struct TaskBodyTextEditor: NSViewRepresentable {
         }
     }
     
+    
     func makeCoordinator() -> Coordinator {
         Coordinator(self)
     }
+    
     
     class Coordinator: NSObject, NSTextViewDelegate {
         var parent: TaskBodyTextEditor
@@ -86,6 +90,8 @@ struct TaskBodyTextEditor: NSViewRepresentable {
                     textView.string = allowed
                 }
             }
+            
+            // TODO: Stop editing when the user presses Return, but insert a newline if they press Shift+Return
             
             DispatchQueue.main.async {
                 self.parent.text = AttributedString(textView.attributedString())

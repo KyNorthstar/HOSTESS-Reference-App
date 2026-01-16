@@ -7,13 +7,19 @@
 
 import SwiftUI
 
+import HRT
+import SHELF
+
+
+
 struct ContentView: View {
+    
+    @State
+    private var sampleTask: HostessTask = .init(id: .init(), body: "Oh no, I'm a task!")
+    
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            SingleTaskView(task: $sampleTask)
         }
         .padding()
     }

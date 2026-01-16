@@ -1,5 +1,5 @@
 {
-  "originHash" : "e1f1f48685085633be595752f28b631a60e2825249ba78d1c710dc1fd2a248c5",
+  "originHash" : "9fc1390a8b95c4a9d93503bc90f2d3a77d4a5fbfb1680ec32768f15393ba028a",
   "pins" : [
     {
       "identity" : "hostess-reference-toolkit",
@@ -7,7 +7,7 @@
       "location" : "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git",
       "state" : {
         "branch" : "feature/MVP",
-        "revision" : "3e1434eb1bfd1f02d74a9a7df9e9f72ffb817e73"
+        "revision" : "8e7c7108006cb68c4ce14912795743200c40cb46"
       }
     },
     {
