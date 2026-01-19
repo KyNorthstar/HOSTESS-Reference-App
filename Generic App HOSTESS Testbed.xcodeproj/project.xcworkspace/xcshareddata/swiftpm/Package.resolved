@@ -7,7 +7,7 @@
       "location" : "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git",
       "state" : {
         "branch" : "feature/MVP",
-        "revision" : "8e7c7108006cb68c4ce14912795743200c40cb46"
+        "revision" : "a2fed187729507539f4fc3353edea117259a420d"
       }
     },
     {
@@ -105,8 +105,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RougeWare/Swift-Rectangle-Tools",
       "state" : {
-        "revision" : "cd266c1db62d03baba7e36bb975b9a9797723ecd",
-        "version" : "2.15.0"
+        "revision" : "dee242573ffc9134e5c70580b3c8dc3fb0718c5b",
+        "version" : "2.16.0"
       }
     },
     {

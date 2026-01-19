@@ -25,11 +25,18 @@ struct SingleTaskView: View {
     @FocusState
     private var isTaskBodyFocused: Bool
     
+    @FocusState private var isFocused: Bool
+//    @Environment(\.isFocused) private var isFocused
+    
+    
     var body: some View {
         HStack {
             ProgressiveCheckbox(completion: $task.completion)
 //            TextField(text: $task.body, label: EmptyView.init)
-            TaskBodyTextEditor(text: $task.body)
+            TaskBodyTextEditor(text: $task.body, onComplete: {
+                isTaskBodyFocused = false
+                isFocused = true
+            })
                 .lineLimit(2, reservesSpace: true)
                 .onHover(perform: { isHovering in
                     isHoveringOverTaskBody = isHovering
@@ -38,9 +45,9 @@ struct SingleTaskView: View {
                 .background((isHoveringOverTaskBody || isTaskBodyFocused) ? Color(NativeColor.textBackgroundColor) : .clear)
 //                .border(isHoveringOverTaskBody ? Color.red : .white)
             
-            VStack {
-                Picker("Debug Completion", selection: $task.completionOverview) {
-                    ForEach(HostessTask.CompletionOverview.allCases) {
+            VStack(alignment: .trailing) {
+                Picker("Debug Completion", selection: $task.completionSummary) {
+                    ForEach(HostessTask.Completion.Summary.allCases) {
                         Text($0.rawValue)
                             .id($0)
                             .tag($0)
@@ -53,47 +60,8 @@ struct SingleTaskView: View {
                 }
             }
         }
-    }
-}
-
-
-
-private extension HostessTask {
-    var completionOverview: CompletionOverview {
-        get { .init(completion) }
-        set { completion = .init(newValue) }
-    }
-    
-    
-    enum CompletionOverview: String, Hashable, Identifiable, CaseIterable {
-        case notStarted
-        case inProgress
-        case complete
-        case dropped
-        
-        var id: RawValue { rawValue }
-        
-        init(_ completion: HostessTask.Completion) {
-            self = switch completion {
-            case .notStarted: .notStarted
-            case .inProgress: .inProgress
-            case .complete:   .complete
-            case .dropped:    .dropped
-            }
-        }
-    }
-}
-
-
-
-private extension HostessTask.Completion {
-    init (_ completionOverview: HostessTask.CompletionOverview) {
-        self = switch completionOverview {
-        case .notStarted: .notStarted
-        case .inProgress: .inProgress(percentage: 0.1)
-        case .complete:   .complete
-        case .dropped:    .dropped
-        }
+        .focusable(interactions: .activate)
+        .background(isFocused ? Color.accentColor : .clear)
     }
 }
 
@@ -104,4 +72,5 @@ private extension HostessTask.Completion {
     var task = HostessTask(body: "Hello HOSTESS")
     
     SingleTaskView(task: $task)
+        .padding()
 }

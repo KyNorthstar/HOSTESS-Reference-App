@@ -8,6 +8,7 @@
 import SwiftUI
 
 import BasicMathTools
+import FunctionTools
 
 
 
@@ -28,6 +29,8 @@ struct TaskBodyTextEditor: NSViewRepresentable {
     var font: NSFont?
     var minHeight: CGFloat = 20
     var maxHeight: CGFloat = .infinity
+    
+    let onComplete: () -> Void
     
     
     func makeNSView(context: Context) -> NSTextView {
@@ -91,12 +94,23 @@ struct TaskBodyTextEditor: NSViewRepresentable {
                 }
             }
             
-            // TODO: Stop editing when the user presses Return, but insert a newline if they press Shift+Return
-            
             DispatchQueue.main.async {
                 self.parent.text = AttributedString(textView.attributedString())
                 self.parent.adjustHeight(textView: textView)
             }
+        }
+        
+        func textView(_ textView: NSTextView, doCommandBy commandSelector: Selector) -> Bool {
+            // Handle Return key to end editing
+            if commandSelector == #selector(NSTextView.insertNewline(_:)) {
+                // Return key without modifiers - resign first responder to stop editing
+                textView.window?.makeFirstResponder(textView.superview)
+                parent.onComplete()
+                return true
+            }
+            // Shift+Return is handled by insertNewlineIgnoringFieldEditor:
+            // which allows the newline to be inserted normally
+            return false
         }
     }
     
@@ -177,7 +191,7 @@ struct TaskBodyTextEditor: UIViewRepresentable {
             """)
     
     VStack {
-        TaskBodyTextEditor(text: $bodyText)
+        TaskBodyTextEditor(text: $bodyText, onComplete: null)
             .lineLimit(2)
             .border(.blue)
         

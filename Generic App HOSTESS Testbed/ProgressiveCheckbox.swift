@@ -57,6 +57,7 @@ struct ProgressiveCheckbox: View {
                 shape(in: .init(x: 0, y: 0, width: diameter, height: diameter),
                       strokeThickness: strokeThickness)
                     .fill(colors.color(for: completion))
+                    .animation(.bouncy, value: completion.summary)
 //                    .stroke(colors.color(for: completion), lineWidth: strokeThickness)
                     .frame(width: diameter, height: diameter)
             }
@@ -90,48 +91,66 @@ struct ProgressiveCheckbox: View {
 private extension ProgressiveCheckbox {
     
     func shape(in frame: CGRect, strokeThickness: CGFloat) -> some Shape {
-        Path { outerPath in
+        let strokeThickness = max(1, strokeThickness)
+        
+        return Path { outerPath in
             outerPath.addEllipse(in: frame)
-            outerPath = outerPath.subtracting(Path { innerCutoutPath in
-                innerCutoutPath.addEllipse(in: frame.insetBy(dx: strokeThickness, dy: strokeThickness))
-                innerCutoutPath = innerCutoutPath.subtracting(Path { progressSymbolPath in
-                    
-                    var innerCircle: Path { Path { innerCircle in
-                        innerCircle.addEllipse(in: frame.insetBy(dx: strokeThickness * 2, dy: strokeThickness * 2))
-                    }}
-                    
-                    switch completion {
-                    case .notStarted:
-                        return
-                        
-                    case .inProgress(percentage: let percentage):
-                        let percentage = clamp(min: 0, value: percentage, max: 1)
-                        let center = CGPoint(x: frame.midX, y: frame.midY)
-                        let radius = min(frame.width, frame.height) / 2
-                        let startAngle = -90.0 // 12 o'clock
-                        let endAngle = startAngle + 360 * percentage // percentage: 0.0~1.0
-                        
-                        progressSymbolPath.move(to: center)
-                        progressSymbolPath.addArc(
-                            center: center,
-                            radius: radius,
-                            startAngle: Angle.degrees(startAngle),
-                            endAngle: Angle.degrees(endAngle),
-                            clockwise: false
-                        )
-                        progressSymbolPath.closeSubpath()
-                        progressSymbolPath = progressSymbolPath.intersection(innerCircle)
-
-                        
-                    case .complete:
-                        progressSymbolPath = progressSymbolPath.union(innerCircle)
-                        
-                    case .dropped:
-                        let crossPath = crossPath(in: frame, strokeThickness: strokeThickness)
-                        progressSymbolPath = crossPath.intersection(innerCircle)
-                    }
-                })
-            })
+            outerPath = outerPath.subtracting(innerCutoutPath(in: frame, strokeThickness: strokeThickness))
+        }
+    }
+    
+    
+    private func innerCutoutPath(in frame: CGRect, strokeThickness: CGFloat) -> Path {
+        Path { innerCutoutPath in
+            innerCutoutPath.addEllipse(in: frame.insetBy(dx: strokeThickness, dy: strokeThickness))
+            innerCutoutPath = innerCutoutPath.subtracting(progressSymbolPath(in: frame, strokeThickness: strokeThickness))
+        }
+    }
+    
+    
+    private func progressSymbolPath(in frame: CGRect, strokeThickness: CGFloat) -> Path {
+        Path { progressSymbolPath in
+            
+            let innerCircle = Circle().path(in: frame.insetBy(dx: strokeThickness * 2, dy: strokeThickness * 2))
+            
+            switch completion {
+            case .notStarted:
+                return
+                
+            case .inProgress(percentage: let percentage):
+                let percentage = clamp(min: 0, value: percentage, max: 1)
+                let center = CGPoint(x: frame.midX, y: frame.midY)
+                let radius = min(frame.width, frame.height) / 2
+                let startAngle = -90.0 // 12 o'clock
+                let endAngle = startAngle + 360 * percentage // percentage: 0.0~1.0
+                
+                progressSymbolPath.move(to: center)
+                progressSymbolPath.addArc(
+                    center: center,
+                    radius: radius,
+                    startAngle: Angle.degrees(startAngle),
+                    endAngle: Angle.degrees(endAngle),
+                    clockwise: false
+                )
+                progressSymbolPath.closeSubpath()
+                if frame.size.minMeasurement > 12 {
+                    let donutHole = Circle().path(in: frame.scaling(dimensionsBy: 2/5))
+                    progressSymbolPath = progressSymbolPath.subtracting(donutHole)
+                    progressSymbolPath = innerCircle.intersection(progressSymbolPath)
+                }
+                
+            case .complete:
+                progressSymbolPath = progressSymbolPath.union(innerCircle)
+                
+            case .dropped:
+                let crossPath = crossPath(in: frame, strokeThickness: strokeThickness)
+                if frame.size.minMeasurement > 12 {
+                    progressSymbolPath = crossPath.intersection(innerCircle)
+                }
+                else {
+                    progressSymbolPath = crossPath
+                }
+            }
         }
     }
     
@@ -255,7 +274,7 @@ extension ProgressiveCheckbox.Colors {
     static var `default`: Self {
         Self(
             notStarted: .primary,
-            inProgress: InProgress(start: .primary, furtherStages: []),
+            inProgress: InProgress(start: .primary, furtherStages: [.primary, .primary, .primary, .secondary]),
             complete: .secondary,
             dropped: .secondary
         )
@@ -272,7 +291,10 @@ extension ProgressiveCheckbox.Colors {
     @Previewable @State
     var progress: CGFloat = 0.2
     
-    VStack(alignment: .leading, spacing: 0) {
+    @Previewable @State
+    var controlSize: ControlSize = .regular
+    
+    VStack(alignment: .leading) {
         HStack {
             ProgressiveCheckbox(completion: $topCheckboxCompletion)
             
@@ -303,6 +325,17 @@ extension ProgressiveCheckbox.Colors {
         }
         ProgressiveCheckbox(completion: .constant(.complete))
         ProgressiveCheckbox(completion: .constant(.dropped))
+        
+        Spacer()
+        
+        Picker("Control size", selection: $controlSize) {
+            ForEach(ControlSize.allCases, id: \.self) { controlSize in
+                Text(String(describing: controlSize))
+                    .tag(controlSize)
+                    .id(controlSize)
+            }
+        }
     }
-    .controlSize(.regular)
+    .controlSize(controlSize)
+    .padding()
 }
