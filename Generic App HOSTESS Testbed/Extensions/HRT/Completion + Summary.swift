@@ -1,5 +1,5 @@
 //
-//  CompletionOverview.swift
+//  Completion + Summary.swift
 //  HOSTESS Reference Technology
 //
 //  Created by Ky on 2026-01-18.
@@ -12,6 +12,7 @@ import HRT
 
 
 extension HostessTask.Completion {
+    /// Summarizes the completion state of a HOSTESS task as a simple singular value. Good for things like dropdowns
     enum Summary: String, Hashable, Identifiable, CaseIterable {
         case notStarted
         case inProgress

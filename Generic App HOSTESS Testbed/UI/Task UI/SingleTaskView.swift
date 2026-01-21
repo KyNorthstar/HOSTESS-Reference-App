@@ -69,7 +69,7 @@ struct SingleTaskView: View {
 
 #Preview {
     @Previewable @State
-    var task = HostessTask(body: "Hello HOSTESS")
+    var task = HostessTask(body: "Hello HOSTESS", parent: .init())
     
     SingleTaskView(task: $task)
         .padding()

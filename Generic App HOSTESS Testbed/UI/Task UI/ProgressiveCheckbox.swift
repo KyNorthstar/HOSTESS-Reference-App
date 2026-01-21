@@ -183,9 +183,9 @@ private extension ProgressiveCheckbox {
         case .small:
             return 24
         case .regular:
-            return 48
+            return 36
         case .large:
-            return 60
+            return 48
         case .extraLarge:
             return 64
             

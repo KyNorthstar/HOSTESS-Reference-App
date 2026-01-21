@@ -68,7 +68,7 @@ public enum PressState: Equatable {
     case released(inside: Bool, modifiers: Modifiers)
     
     
-    public struct Modifiers: OptionSet, Equatable {
+    public struct Modifiers: OptionSet, Equatable, Sendable {
         public let rawValue: Int
         public init(rawValue: Int) { self.rawValue = rawValue }
         

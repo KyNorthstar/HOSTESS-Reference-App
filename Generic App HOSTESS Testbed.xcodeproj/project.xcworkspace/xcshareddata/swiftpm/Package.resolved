@@ -7,7 +7,7 @@
       "location" : "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git",
       "state" : {
         "branch" : "feature/MVP",
-        "revision" : "a2fed187729507539f4fc3353edea117259a420d"
+        "revision" : "83aa265a27227534953f23ca715ae17e5593a178"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "git@github.com:KyNorthstar/SHELF.git",
       "state" : {
         "branch" : "production",
-        "revision" : "efa6f71362399172ca6fda3aa397bd41dc13c380"
+        "revision" : "6052e80818075318a0f3b4ef0dfe47d5d898db02"
       }
     },
     {
