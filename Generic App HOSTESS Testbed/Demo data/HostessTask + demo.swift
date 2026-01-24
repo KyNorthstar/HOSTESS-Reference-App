@@ -9,6 +9,7 @@ import Foundation
 
 import HRT
 import SHELF
+import UuidTools
 
 
 
@@ -21,6 +22,14 @@ extension HostessTask {
         .groceryList_buyChicken,
         .groceryList_buyEggs,
     ]
+}
+
+
+
+// MARK: - Placeholder
+
+extension ShelfId {
+    static let nullTasklist = Self(rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
 }
 
 

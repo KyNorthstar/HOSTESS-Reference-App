@@ -23,7 +23,7 @@ extension HostessTasklist {
 // MARK: - Grocery list
 
 extension HostessTasklist {
-    static let groceryList: Self = .init(name: "Grocery List", tasks: [
+    static let groceryList: Self = .init(id: .groceryList, name: "Grocery List", tasks: [
         .groceryList_buyMilk,
         .groceryList_buyBread,
         .groceryList_buyCheese,

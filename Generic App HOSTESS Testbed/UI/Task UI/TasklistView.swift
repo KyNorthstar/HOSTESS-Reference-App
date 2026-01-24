@@ -19,14 +19,15 @@ struct TasklistView: View {
     
     
     var body: some View {
-        Text("TODO")
+        Text(tasklist.name)
+        Text("TODO: Load \(tasklist.tasks.count) tasks")
     }
 }
 
 
 
 #Preview {
-    LazyHostessPreview(subjectId: .groceryList) { tasklist in
+    LazyHostessPreview(subjectId: .groceryList) { tasklist in 
         TasklistView(tasklist: tasklist)
     }
 }

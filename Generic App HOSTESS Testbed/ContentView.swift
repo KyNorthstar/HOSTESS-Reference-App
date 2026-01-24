@@ -14,17 +14,62 @@ import SHELF
 
 struct ContentView: View {
     
+    @Environment(\.shelf)
+    private var shelf
+    
     @State
-    private var sampleTasks: [HostessTask] = [
-        .init(body: "Oh no, I'm a task!"),
-        .init(body: "I'm a task with a sibling!"),
-        .init(body: "Ah great, I'm the last one!"),
-    ]
+    private var currentTasklistId: ShelfId = .groceryList
+    
+    @State
+    private var currentTasklist: RenderedHostessTasklist?
+    
+    @State
+    private var error: Error?
+    
     
     var body: some View {
         VStack {
-            ForEach($sampleTasks) { $task in
-                SingleTaskView(task: $task)
+            if let error {
+                Text(error.localizedDescription)
+            }
+            else if let shelf {
+                if let currentTasklist {
+                    TasklistView(
+                        tasklist: Binding {
+                            currentTasklist
+                        }
+                        set: {
+                            self.currentTasklist = $0
+                        }
+                    )
+                }
+                else {
+                    Text("Loading tasks...")
+                    ProgressView()
+                        .task {
+                            let loadedTasklist: HostessTasklist
+                            let _shelf: Shelf
+                            
+                            do {
+                                _shelf = try await shelf.wrappedValue
+                                
+                                guard let _loadedTasklist: HostessTasklist = try await _shelf.object(withId: currentTasklistId)
+                                else {
+                                    throw HostessObjectRenderError<Never>.objectNotFound(id: currentTasklistId)
+                                }
+                                loadedTasklist = _loadedTasklist
+                                
+                                currentTasklist = await .init(renderingFrom: loadedTasklist, using: _shelf)
+                            }
+                            catch {
+                                self.error = error
+                            }
+                        }
+                }
+            }
+            else {
+                Text("Waiting for SHELF...")
+                ProgressView()
             }
         }
         .padding()
@@ -35,4 +80,7 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+        .environment(\.shelf, .some(.init(get: {
+            await .demo
+        })))
 }

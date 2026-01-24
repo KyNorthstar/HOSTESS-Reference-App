@@ -49,7 +49,7 @@ internal extension RenderedHostessObject {
                         return (index, .success(foundObject))
                     }
                     else {
-                        let error = LegalError.objectNotFound
+                        let error = LegalError.objectNotFound(id: subtaskId)
                         assertionFailure(error.localizedDescription)
                         return (index, .failure(error))
                     }
@@ -88,10 +88,30 @@ internal extension RenderedHostessObject {
 
 
 public enum HostessObjectRenderError<RenderError: Error & Equatable>: Error {
-    case objectNotFound
+    case objectNotFound(id: ShelfId)
     case shelfReadError(Shelf.ReadError)
     case renderError(RenderError)
     case impossibleError(Error)
+}
+
+
+
+extension HostessObjectRenderError: LocalizedError {
+    public var errorDescription: String? {
+        switch self {
+        case .objectNotFound(id: let id):
+            return "Couldn't find any object with the ID \(id)."
+            
+        case .shelfReadError(let error):
+            return "Failed to read from the shelf: \(error)"
+            
+        case .renderError(let error):
+            return "Resolution failed with error: \(error)"
+            
+        case .impossibleError(let error):
+            return "Unexpected error: \(error)"
+        }
+    }
 }
 
 

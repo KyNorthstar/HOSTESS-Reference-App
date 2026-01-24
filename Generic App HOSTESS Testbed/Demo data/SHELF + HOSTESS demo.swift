@@ -13,12 +13,11 @@ import SHELF
 
 
 #if DEBUG || SHELF_DEMO
+@MainActor
 extension Shelf {
-    @MainActor
-    static var _demo: Self?
+    private static var _demo: Self?
     
     
-    @MainActor
     static var demo: Self { get async {
         if let _demo { return _demo }
         else {
@@ -28,7 +27,11 @@ extension Shelf {
     }}
     
     
-    @MainActor
+    static func setDemo(_ newValue: Self) {
+        self._demo = newValue
+    }
+    
+    
     static func _generateDemo() async -> Self {
         var demoHostessShelf = Self.onlyInMemory()
         for demoTasklist in HostessTasklist.demos {

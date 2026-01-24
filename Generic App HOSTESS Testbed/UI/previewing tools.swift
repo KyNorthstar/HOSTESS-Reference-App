@@ -12,7 +12,7 @@ import SHELF
 
 
 
-internal struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedHostessObject>: View {
+struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedHostessObject>: View {
     
     @State
     private var shelf: Shelf?
@@ -30,44 +30,79 @@ internal struct LazyHostessPreview<Content: HostessMutatingView, Subject: Render
     
     
     var body: some View {
-        if let shelf {
-            if let subject {
-                content(.init(get: {
-                    subject
-                }, set: { newValue in
-                    self.subject = newValue
-                }))
+        VStack {
+            if let error {
+                Text(String(describing: error))
+                    .foregroundStyle(.red)
+                    .frame(minWidth: 400, maxWidth: .infinity, minHeight: 200, maxHeight: .infinity)
+//                    .fixedSize()
+                    .padding()
+            }
+            
+            else if let shelf {
+                if let subject {
+                    content(.init(get: {
+                        subject
+                    }, set: { newValue in
+                        self.subject = newValue
+                    }))
+                }
+                else {
+                    ProgressView()
+                        .controlSize(.large)
+                        .task {
+                            do {
+                                guard let raw: Subject.DataType = try await shelf.object(withId: subjectId) else {
+                                    self.error = LoadingError.couldNotFindSubject(id: subjectId)
+                                    return
+                                }
+                                subject = try await .init(renderingFrom: raw, using: shelf)
+                            }
+                            catch {
+                                self.error = error
+                            }
+                        }
+                }
             }
             else {
                 ProgressView()
-                    .controlSize(.large)
+                    .controlSize(.mini)
                     .task {
-                        do {
-                            guard let raw: Subject.DataType = try await shelf.object(withId: subjectId) else {
-                                assertionFailure("Could not find subject with ID \(subjectId) of type \(Subject.self)")
-                                return
-                            }
-                            subject = try await .init(renderingFrom: raw, using: shelf)
-                        }
-                        catch {
-                            self.error = error
-                        }
+                        shelf = await .demo
                     }
             }
-        }
-        else {
-            ProgressView()
-                .controlSize(.mini)
-                .task {
-                    shelf = await .demo
-                }
         }
     }
 }
 
 
 
-internal protocol HostessMutatingView: View {
+extension LazyHostessPreview {
+    enum LoadingError: Error, LocalizedError, CustomStringConvertible {
+        case couldNotFindSubject(id: ShelfId)
+        
+        var localizedDescription: String {
+            switch self {
+            case .couldNotFindSubject(id: let id):
+                return "Could not find subject with ID \(String(describing: id)) of type \(Subject.self)."
+            }
+        }
+        
+        
+        var description: String {
+            localizedDescription
+        }
+        
+        
+        var errorDescription: String? {
+            localizedDescription
+        }
+    }
+}
+
+
+
+protocol HostessMutatingView: View {
     associatedtype RenderedSubject: RenderedHostessObject
     
     
