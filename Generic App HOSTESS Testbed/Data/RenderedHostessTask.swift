@@ -24,13 +24,13 @@ public struct RenderedHostessTask {
 
 
 
-extension RenderedHostessTask: RenderedHostessObject {
-    public typealias DataType = HostessTask
+extension RenderedHostessTask: RenderedShelfObject {
+    public typealias RawData = HostessTask
     public typealias RenderError = Never
     
     
     
-    public init(renderingFrom data: DataType, using shelf: Shelf) async throws(RenderError) {
+    public init(renderingFrom data: RawData, using shelf: Shelf) async throws(Never) {
         self.id = data.id
         self.body = data.body
         self.notes = data.notes
@@ -41,5 +41,27 @@ extension RenderedHostessTask: RenderedHostessObject {
         }
         
         self.completion = data.completion
+    }
+    
+    
+    public func recreate(using shelf: Shelf) async -> HostessTask {
+        .init(
+            id: id,
+            body: body,
+            notes: notes,
+            parent: parentId,
+            subtasks: subtasks?.map(\.id),
+            tags: nil,//tags.map(\.id),
+            state: completion.taskState,
+            completionPercentage: completion.completionPercentage)
+    }
+}
+
+
+
+extension RenderedHostessTask {
+    var completionSummary: HostessTask.Completion.Summary {
+        get { .init(completion) }
+        set { completion = .init(newValue) }
     }
 }

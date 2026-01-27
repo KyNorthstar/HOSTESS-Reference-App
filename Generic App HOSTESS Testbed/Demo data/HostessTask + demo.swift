@@ -29,7 +29,7 @@ extension HostessTask {
 // MARK: - Placeholder
 
 extension ShelfId {
-    static let nullTasklist = Self(rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
+    static let null = Self(rawValue: UUID(uuidString: "00000000-0000-0000-0000-000000000000")!)
 }
 
 
@@ -43,6 +43,10 @@ extension HostessTask {
     static let groceryList_buyButter:  Self = .init(id: .groceryList_buyButter,  body: "Butter",  parent: .groceryList)
     static let groceryList_buyChicken: Self = .init(id: .groceryList_buyChicken, body: "Chicken", parent: .groceryList)
     static let groceryList_buyEggs:    Self = .init(id: .groceryList_buyEggs,    body: "Eggs",    parent: .groceryList)
+    
+    static let groceryList_buyAirFilter:               Self = .init(id: .groceryList_buyAirFilter,               body: "Air filter",                     parent: .groceryList)
+    static let groceryList_measureAirFilter:           Self = .init(id: .groceryList_measureAirFilter,           body: "Measure our current air filter", parent: .groceryList_buyAirFilter)
+    static let groceryList_compareDifferentAirFilters: Self = .init(id: .groceryList_compareDifferentAirFilters, body: "Compare different air filters",  parent: .groceryList_buyAirFilter)
 }
 
 
@@ -54,4 +58,8 @@ extension ShelfId {
     static let groceryList_buyButter =  Self(rawValue: UUID(uuidString: "4D79E3AF-C3EC-4D53-9B21-703FF83F924B")!)
     static let groceryList_buyChicken = Self(rawValue: UUID(uuidString: "0762F4B7-A57E-4213-9DBB-DD39D5A09805")!)
     static let groceryList_buyEggs =    Self(rawValue: UUID(uuidString: "5BC71286-284C-49D2-B4BC-E33D446CDE8A")!)
+    
+    static let groceryList_buyAirFilter =               Self(rawValue: UUID(uuidString: "866CD904-E80C-4BC4-8E15-CA3B1A333B30")!)
+    static let groceryList_measureAirFilter =           Self(rawValue: UUID(uuidString: "9F706F22-205B-4E61-9E7C-1D3A2B8A74F3")!)
+    static let groceryList_compareDifferentAirFilters = Self(rawValue: UUID(uuidString: "579E6EDC-B940-4C91-99B5-8D0F8C3C2921")!)
 }

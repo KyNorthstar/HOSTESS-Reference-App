@@ -16,7 +16,7 @@ import SHELF
 struct SingleTaskView: View {
     
     @Binding
-    var task: HostessTask
+    var task: RenderedHostessTask
     
     
     @State
@@ -69,7 +69,7 @@ struct SingleTaskView: View {
 
 #Preview {
     @Previewable @State
-    var task = HostessTask(body: "Hello HOSTESS", parent: .init())
+    var task = RenderedHostessTask(id: .init(), body: "Hello HOSTESS", parentId: .null, completion: .notStarted)
     
     SingleTaskView(task: $task)
         .padding()

@@ -13,11 +13,9 @@ import OptionalTools
 
 
 
-public typealias RenderedHostessObjectOrError<F: RenderedHostessObject> = Result<F, HostessObjectRenderError<F.RenderError>>
+// MARK: - Collection rendering
 
-
-
-internal extension RenderedHostessObject {
+internal extension RenderedShelfObject {
     /// Asynchronously converts the given collection of SHELF IDs into an array of fully-rendered HOSTESS objects of the given (or implied) type by looking them up from the given `Shelf`
     ///
     /// - Parameters:
@@ -29,20 +27,20 @@ internal extension RenderedHostessObject {
     static func renderCollection<C, Rendered>(_ collection: C, with shelf: Shelf, as result: Rendered.Type = Rendered.self) async -> [Result<Rendered, HostessObjectRenderError<Rendered.RenderError>>]
     where C: Collection,
           C.Element == ShelfId,
-          Rendered: RenderedHostessObject
+          Rendered: RenderedShelfObject
     {
         typealias LegalError = HostessObjectRenderError<Rendered.RenderError>
         return await AsyncStream(collection.enumerated())
-            .map { (index, subtaskId)-> (index: Int, result: Result<Rendered.DataType, LegalError>) in
+            .map { (index, subtaskId)-> (index: Int, result: Result<Rendered.RawData, LegalError>) in
                 do {
-                    let foundObject: Rendered.DataType?
+                    let foundObject: Rendered.RawData?
                     
                     do {
                         foundObject = try await shelf.object(withId: subtaskId)
                     }
                     catch let error as Shelf.ReadError { // very upset at the Swift compiler for making me do this
                         assertionFailure(error.localizedDescription)
-                        return (index, .failure(.shelfReadError(error)))
+                        return (index, .failure(.shelfReadError(objectId: subtaskId, error)))
                     }
                     
                     if let foundObject {
@@ -55,7 +53,7 @@ internal extension RenderedHostessObject {
                     }
                 }
                 catch { // very upset at the Swift compiler for making me do this
-                    return (index, .failure(.impossibleError(error)))
+                    return (index, .failure(.impossibleError(objectId: subtaskId, error)))
                 }
             }
         
@@ -72,7 +70,7 @@ internal extension RenderedHostessObject {
                         return (index, .failure(.renderError(error)))
                     }
                     catch { // very upset at the Swift compiler for making me do this
-                        return (index, .failure(.impossibleError(error)))
+                        return (index, .failure(.impossibleError(objectId: rawSubtask.id, error)))
                     }
                 }
             }
@@ -87,11 +85,55 @@ internal extension RenderedHostessObject {
 
 
 
-public enum HostessObjectRenderError<RenderError: Error & Equatable>: Error {
+// MARK: - Conveniences
+
+public typealias RenderedHostessObjectOrError<Rendered: RenderedShelfObject> = Result<Rendered, HostessObjectRenderError<Rendered.RenderError>>
+
+
+
+extension Result: @retroactive Identifiable,
+                  @retroactive ShelfIdentifiable
+where Success: RenderedShelfObject,
+      Failure == HostessObjectRenderError<Success.RenderError>
+{
+    public var id: ShelfId {
+        switch self {
+        case .success(let object):
+            return object.id
+            
+        case .failure(let error):
+            return error.id
+        }
+    }
+}
+
+
+
+// MARK: - HostessObjectRenderError
+
+public enum HostessObjectRenderError<RenderError: ShelfObjectRenderError>: ShelfObjectRenderError {
     case objectNotFound(id: ShelfId)
-    case shelfReadError(Shelf.ReadError)
+    case shelfReadError(objectId: ShelfId, Shelf.ReadError)
     case renderError(RenderError)
-    case impossibleError(Error)
+    case impossibleError(objectId: ShelfId, Error)
+    
+    
+    
+    typealias RenderError = RenderError // For some reason the Swift compiler requires this in order to know that RenderError is a type-member of HostesssObjectRenderError
+    
+    
+    
+    public var id: ShelfId {
+        switch self {
+        case .objectNotFound(let id),
+                .shelfReadError(let id, _),
+                .impossibleError(let id, _):
+            id
+            
+        case .renderError(let renderError):
+            renderError.id
+        }
+    }
 }
 
 
@@ -102,14 +144,14 @@ extension HostessObjectRenderError: LocalizedError {
         case .objectNotFound(id: let id):
             return "Couldn't find any object with the ID \(id)."
             
-        case .shelfReadError(let error):
-            return "Failed to read from the shelf: \(error)"
+        case .shelfReadError(objectId: let objectId, let error):
+            return "Failed to read object with ID \(objectId) from the shelf: \(error)"
             
         case .renderError(let error):
             return "Resolution failed with error: \(error)"
             
-        case .impossibleError(let error):
-            return "Unexpected error: \(error)"
+        case .impossibleError(objectId: let objectId, let error):
+            return "Unexpected error when resolving object with ID \(objectId): \(error)"
         }
     }
 }
@@ -122,19 +164,23 @@ extension HostessObjectRenderError: Equatable {
         case (.objectNotFound, .objectNotFound):
             return true
             
-        case (.shelfReadError(let lhsError), .shelfReadError(let rhsError)):
-            return lhsError == rhsError
+        case (.shelfReadError(objectId: let lhsObjectId, let lhsError),
+              .shelfReadError(objectId: let rhsObjectId, let rhsError)):
+            return lhsObjectId == rhsObjectId
+                && lhsError == rhsError
             
         case (.renderError(let lhsError), .renderError(let rhsError)):
             return lhsError == rhsError
             
-        case (.impossibleError(let lhs), .impossibleError(let rhs)):
-            return (lhs as NSError) == (rhs as NSError)
+        case (.impossibleError(objectId: let lhsObjectId, let lhsError),
+              .impossibleError(objectId: let rhsObjectId, let rhsError)):
+            return lhsObjectId == rhsObjectId
+                && (lhsError as NSError) == (rhsError as NSError)
             
         case (objectNotFound, _),
-            (shelfReadError(_), _),
+            (shelfReadError(objectId:_,_), _),
             (renderError(_), _),
-            (impossibleError(_), _):
+            (impossibleError(objectId:_,_), _):
             return false
         }
     }
@@ -143,8 +189,8 @@ extension HostessObjectRenderError: Equatable {
 
 
 extension HostessPayload {
-    func rendered<Rendered: RenderedHostessObject>(using shelf: Shelf) async throws(Rendered.RenderError) -> Rendered
-    where Rendered.DataType == Self
+    func rendered<Rendered: RenderedShelfObject>(using shelf: Shelf) async throws(Rendered.RenderError) -> Rendered
+    where Rendered.RawData == Self
     {
         try await Rendered(renderingFrom: self, using: shelf)
     }

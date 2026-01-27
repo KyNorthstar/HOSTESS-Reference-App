@@ -20,7 +20,26 @@ struct TasklistView: View {
     
     var body: some View {
         Text(tasklist.name)
-        Text("TODO: Load \(tasklist.tasks.count) tasks")
+        
+        VStack {
+            ForEach(tasklist.tasks) { taskOrError in
+                switch taskOrError {
+                case .success(let task):
+                    TaskWithSubtasksView(
+                        task: Binding {
+                            task
+                        }
+                        set: { renderedTask in
+                            tasklist.tasks.update(elementWithId: renderedTask.id, to: .success(renderedTask))
+                        }
+                    )
+                    
+                case .failure(let error):
+                    Text(error.localizedDescription)
+                }
+            }
+        }
+//        Text("TODO: Load \(tasklist.tasks.count) tasks")
     }
 }
 

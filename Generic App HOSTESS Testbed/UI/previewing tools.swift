@@ -12,7 +12,7 @@ import SHELF
 
 
 
-struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedHostessObject>: View {
+struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfObject>: View {
     
     @State
     private var shelf: Shelf?
@@ -52,7 +52,7 @@ struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedHostess
                         .controlSize(.large)
                         .task {
                             do {
-                                guard let raw: Subject.DataType = try await shelf.object(withId: subjectId) else {
+                                guard let raw: Subject.RawData = try await shelf.object(withId: subjectId) else {
                                     self.error = LoadingError.couldNotFindSubject(id: subjectId)
                                     return
                                 }
@@ -103,7 +103,7 @@ extension LazyHostessPreview {
 
 
 protocol HostessMutatingView: View {
-    associatedtype RenderedSubject: RenderedHostessObject
+    associatedtype RenderedSubject: RenderedShelfObject
     
     
     init(mutating subject: Binding<RenderedSubject>)
