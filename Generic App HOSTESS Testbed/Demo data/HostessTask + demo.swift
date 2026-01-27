@@ -21,6 +21,10 @@ extension HostessTask {
         .groceryList_buyButter,
         .groceryList_buyChicken,
         .groceryList_buyEggs,
+        
+        .groceryList_buyAirFilter,
+        .groceryList_measureAirFilter,
+        .groceryList_compareDifferentAirFilters,
     ]
 }
 
@@ -44,7 +48,7 @@ extension HostessTask {
     static let groceryList_buyChicken: Self = .init(id: .groceryList_buyChicken, body: "Chicken", parent: .groceryList)
     static let groceryList_buyEggs:    Self = .init(id: .groceryList_buyEggs,    body: "Eggs",    parent: .groceryList)
     
-    static let groceryList_buyAirFilter:               Self = .init(id: .groceryList_buyAirFilter,               body: "Air filter",                     parent: .groceryList)
+    static let groceryList_buyAirFilter:               Self = .init(id: .groceryList_buyAirFilter,               body: "Air filter",                     parent: .groceryList, subtasks: [.groceryList_measureAirFilter, .groceryList_compareDifferentAirFilters])
     static let groceryList_measureAirFilter:           Self = .init(id: .groceryList_measureAirFilter,           body: "Measure our current air filter", parent: .groceryList_buyAirFilter)
     static let groceryList_compareDifferentAirFilters: Self = .init(id: .groceryList_compareDifferentAirFilters, body: "Compare different air filters",  parent: .groceryList_buyAirFilter)
 }
