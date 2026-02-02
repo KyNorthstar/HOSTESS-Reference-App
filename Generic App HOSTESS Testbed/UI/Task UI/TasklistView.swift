@@ -38,6 +38,10 @@ struct TasklistView: View {
                     Text(error.localizedDescription)
                 }
             }
+            
+            Button("Add Task", systemImage: "plus.circle") {
+                tasklist.tasks.append(.success(.init(id: .init(), body: "", parent: .init(id: tasklist.id), completion: .notStarted)))
+            }
         }
 //        Text("TODO: Load \(tasklist.tasks.count) tasks")
     }
@@ -49,6 +53,7 @@ struct TasklistView: View {
     LazyHostessPreview(subjectId: .groceryList) { tasklist in 
         TasklistView(tasklist: tasklist)
     }
+    .frame(width: 500, height: 500)
 }
 
 

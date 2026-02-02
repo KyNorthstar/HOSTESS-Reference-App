@@ -67,3 +67,18 @@ extension ShelfId {
     static let groceryList_measureAirFilter =           Self(rawValue: UUID(uuidString: "9F706F22-205B-4E61-9E7C-1D3A2B8A74F3")!)
     static let groceryList_compareDifferentAirFilters = Self(rawValue: UUID(uuidString: "579E6EDC-B940-4C91-99B5-8D0F8C3C2921")!)
 }
+
+
+
+extension HostessTask.Parent {
+    static var groceryList_buyMilk: Self    { Self(id: .groceryList_buyMilk) }
+    static var groceryList_buyBread: Self   { Self(id: .groceryList_buyBread) }
+    static var groceryList_buyCheese: Self  { Self(id: .groceryList_buyCheese) }
+    static var groceryList_buyButter: Self  { Self(id: .groceryList_buyButter) }
+    static var groceryList_buyChicken: Self { Self(id: .groceryList_buyChicken) }
+    static var groceryList_buyEggs: Self    { Self(id: .groceryList_buyEggs) }
+    
+    static var groceryList_buyAirFilter: Self               { Self(id: .groceryList_buyAirFilter) }
+    static var groceryList_measureAirFilter: Self           { Self(id: .groceryList_measureAirFilter) }
+    static var groceryList_compareDifferentAirFilters: Self { Self(id: .groceryList_compareDifferentAirFilters) }
+}

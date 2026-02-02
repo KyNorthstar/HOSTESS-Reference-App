@@ -42,6 +42,16 @@ struct ContentView: View {
                             self.currentTasklist = $0
                         }
                     )
+                    .onChange(of: currentTasklist) { _, currentTasklist in
+                        Task {
+                            var shelf = await shelf.wrappedValue
+                            let recreated = await currentTasklist.recreate(using: shelf)
+                            try await shelf.update(objectWithId: currentTasklist.id, ofType: HostessTasklist.self) { object in
+                                object = recreated
+                            }
+                            onObjectNotFound: {}
+                        }
+                    }
                 }
                 else {
                     Text("Loading tasks...")
@@ -51,7 +61,7 @@ struct ContentView: View {
                             let _shelf: Shelf
                             
                             do {
-                                _shelf = try await shelf.wrappedValue
+                                _shelf = await shelf.wrappedValue
                                 
                                 guard let _loadedTasklist: HostessTasklist = try await _shelf.object(withId: currentTasklistId)
                                 else {

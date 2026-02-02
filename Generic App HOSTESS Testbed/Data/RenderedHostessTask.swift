@@ -16,7 +16,7 @@ public struct RenderedHostessTask {
     public let id: ShelfId
     public var body: AttributedString
     public var notes: AttributedString?
-    public var parentId: ShelfId // Feels like a Very Bad Idea™ to render the parent in the child and the child in the parent
+    public var parent: HostessTask.Parent // Feels like a Very Bad Idea™ to render the parent in the child and the child in the parent
     public var subtasks: [RenderedHostessObjectOrError<RenderedHostessTask>]?
     //public var tags: [FullyRenderedHostessTag]?
     public var completion: HostessTask.Completion
@@ -34,7 +34,7 @@ extension RenderedHostessTask: RenderedShelfObject {
         self.id = data.id
         self.body = data.body
         self.notes = data.notes
-        self.parentId = data.parent
+        self.parent = data.parent
         
         if let data_subtasks = data.subtasks {
             self.subtasks = await Self.renderCollection(data_subtasks, with: shelf)
@@ -49,7 +49,7 @@ extension RenderedHostessTask: RenderedShelfObject {
             id: id,
             body: body,
             notes: notes,
-            parent: parentId,
+            parent: parent,
             subtasks: subtasks?.map(\.id),
             tags: nil,//tags.map(\.id),
             state: completion.taskState,

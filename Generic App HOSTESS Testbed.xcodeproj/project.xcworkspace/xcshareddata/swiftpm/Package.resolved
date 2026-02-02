@@ -7,7 +7,7 @@
       "location" : "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git",
       "state" : {
         "branch" : "feature/MVP",
-        "revision" : "aad77a54f7f3a65267a1c4673781e805c44309ca"
+        "revision" : "8d3a8eeb097ac61e57aaa024100d579b3d502b7d"
       }
     },
     {
@@ -16,7 +16,7 @@
       "location" : "git@github.com:KyNorthstar/SHELF.git",
       "state" : {
         "branch" : "production",
-        "revision" : "465b8827f7c90dd4466ef365046e475183ffddbe"
+        "revision" : "8cf2f94ecadd000bc77f13dca29cc90165189307"
       }
     },
     {
@@ -53,6 +53,15 @@
       "state" : {
         "revision" : "d64faa8d5e988352dff45e03a13da4f90c3a70e5",
         "version" : "1.0.0"
+      }
+    },
+    {
+      "identity" : "swift-either",
+      "kind" : "remoteSourceControl",
+      "location" : "git@github.com:RougeWare/Swift-Either.git",
+      "state" : {
+        "revision" : "89bdbb865bde920c8cee7c998c5887869586e0c7",
+        "version" : "2.0.0"
       }
     },
     {
@@ -177,8 +186,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/RougeWare/UuidTools.git",
       "state" : {
-        "revision" : "dbd634bbdda3e2b3b428eb6580f6244585b99652",
-        "version" : "0.2.1"
+        "revision" : "f918c747061df523e9817316459f2d1b5b17bcd8",
+        "version" : "0.4.0"
       }
     }
   ],

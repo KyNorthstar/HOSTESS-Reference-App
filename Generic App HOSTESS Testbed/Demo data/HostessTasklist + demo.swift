@@ -30,6 +30,8 @@ extension HostessTasklist {
         .groceryList_buyButter,
         .groceryList_buyChicken,
         .groceryList_buyEggs,
+        
+        .groceryList_buyAirFilter,
     ])
 }
 
@@ -37,4 +39,10 @@ extension HostessTasklist {
 
 extension ShelfId {
     static let groceryList =            Self(rawValue: UUID(uuidString: "F37460BC-5790-43B6-ADEB-A2ED19CDF841")!)
+}
+
+
+
+extension HostessTask.Parent {
+    static var groceryList: Self { Self(id: .groceryList) }
 }
