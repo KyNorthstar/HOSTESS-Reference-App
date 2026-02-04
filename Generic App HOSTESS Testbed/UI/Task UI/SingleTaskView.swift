@@ -11,11 +11,19 @@ import SwiftUI
 
 import CrossKitTypes
 import HRT
+import RectangleTools
 import SHELF
 
 
 
 struct SingleTaskView: View {
+    
+    // MARK: - Fields
+    
+    // MARK: External state
+    
+    @Environment(\.debug)
+    private var debug
     
     @Environment(\.shelf)
     private var shelf
@@ -24,13 +32,13 @@ struct SingleTaskView: View {
     var task: RenderedHostessTask
     
     
+    // MARK: Focus
+    
     @State
     private var isHoveringOverTaskBody = false
     
     @State
-    @MainActor
-    private var taskIdeas: FailableLoadingState<TaskIdeas, Error> = .notStarted
-    
+    private var isHoveringOverTaskItem = false
     
     @FocusState
     private var isTaskBodyTextEntryFocused: Bool
@@ -38,88 +46,42 @@ struct SingleTaskView: View {
     @FocusState
     private var isTaskItemFocused: Bool
     
+    // MARK: Generative ideas
+    
     // TODO: Move this all to the tasklist
     private let taskIdeaRolloverTimer = Timer.publish(every: 10, on: .main, in: .default).autoconnect()
     @State
     private var taskIdea = "Type here..."
     @State
     private var langaugeModelSession: LanguageModelSession?
+    @State
+    @MainActor
+    private var taskIdeas: FailableLoadingState<TaskIdeas, Error> = .notStarted
     
+    
+    // MARK: - Body
     
     var body: some View {
+        
+        // MARK: General view
+        
         HStack {
             ProgressiveCheckbox(completion: $task.completion)
-            TextEditor(text: $task.body)
-                .onKeyPress(keys: [.return], action: { keyPress in
-                    var newlineKeyModifier: Bool {
-                           keyPress.modifiers.contains(.option)
-                        || keyPress.modifiers.contains(.shift)
-                    }
-                    
-                    guard !newlineKeyModifier else {
-                        return .ignored
-                    }
-                    
-                    isTaskItemFocused = false
-                    return .handled
-                })
-                .frame(minWidth: 0, maxWidth: .infinity, minHeight: 12, maxHeight: 48 * 4)
-                .fixedSize(horizontal: false, vertical: true)
-                .focusable()
-                .focused($isTaskBodyTextEntryFocused)
-                .lineLimit(2, reservesSpace: true)
-                .onHover(perform: { isHovering in
-                    isHoveringOverTaskBody = isHovering
-                })
-                .pointerStyle(.horizontalText)
-            //                .padding(1)
-                .background(textBodyBackground(isHovering: isHoveringOverTaskBody, isFocused: isTaskBodyTextEntryFocused))
-                .overlay(alignment: .leading) {
-                    if task.body.description.isEmpty {
-                        Text(taskIdea)
-                            .contentTransition(.interpolate)
-                            .animation(.bouncy, value: taskIdea)
-                            .padding(.horizontal, 4)
-                            .opacity(0.4)
-                            .allowsHitTesting(false)
-                    }
-                    else {
-                        EmptyView()
-                    }
-                }
             
-//            TextField(text: $task.body, label: EmptyView.init)
-//            TaskBodyTextEditor(text: $task.body, onComplete: {
-//                isTaskBodyTextEntryFocused = false
-//                isTaskItemFocused = true
-//            })
-//                .focusable()
-//                .focused($isTaskBodyTextEntryFocused)
-//                .lineLimit(2, reservesSpace: true)
-//                .onHover(perform: { isHovering in
-//                    isHoveringOverTaskBody = isHovering
-//                })
-//                .pointerStyle(.horizontalText)
-////                .padding(1)
-//                .background((isHoveringOverTaskBody || isTaskBodyTextEntryFocused) ? Color(NativeColor.textBackgroundColor) : .clear)
-////                .border(isHoveringOverTaskBody ? Color.red : .white)
+            bodyEditor
             
-            VStack(alignment: .trailing) {
-                Picker("Debug Completion", selection: $task.completionSummary) {
-                    ForEach(HostessTask.Completion.Summary.allCases) {
-                        Text($0.rawValue)
-                            .id($0)
-                            .tag($0)
-                    }
-                }
-                
-                if case .inProgress(percentage: let percentage) = task.completion {
-                    Slider(value: .init(get: { percentage }, set: { task.completion = .inProgress(percentage: $0) }),
-                           in: 0...1)
-                }
+            if debug {
+                debugControls
             }
         }
-        .background(isTaskItemFocused ? Color.accentColor : .clear)
+        .padding(padding)
+        .background {
+            background(isHovering: isHoveringOverTaskItem, isFocused: isTaskItemFocused)
+        }
+        
+        
+        // MARK: Focus
+        
         .focusable()
         .focused($isTaskItemFocused)
         .focusSection()
@@ -129,6 +91,20 @@ struct SingleTaskView: View {
         .onTapGesture {
             isTaskItemFocused = true
         }
+        
+        .onHover { isHovering in
+            isHoveringOverTaskItem = isHovering
+        }
+        
+        .onKeyPress { event in
+            isTaskBodyTextEntryFocused = true
+            task.body.characters.append(contentsOf: event.characters)
+            
+            return .ignored
+        }
+        
+        
+        // MARK: Async
         
         .task {
             guard let shelf = await shelf?.wrappedValue else { return }
@@ -143,13 +119,6 @@ struct SingleTaskView: View {
                 assertionFailure(error.localizedDescription)
                 return
             }
-            
-//            switch parent {
-//            case .left(let task):
-//                print("Left shelf object with id: \(task)")
-//            case .right(let tasklist):
-//                print("Right shelf object with id: \(tasklist)")
-//            }
         }
         
         .task {
@@ -181,6 +150,74 @@ struct SingleTaskView: View {
     }
     
     
+    private func anyTaskIdea() -> String {
+        switch taskIdeas {
+        case .notStarted, .loading, .failure(_):
+            taskIdea
+            
+        case .success(let taskIdeas):
+            taskIdeas.taskIdeas.randomElement() ?? taskIdea
+        }
+    }
+}
+
+
+
+// MARK: subviews
+
+private extension SingleTaskView {
+    
+    var bodyEditor: some View {
+        TextEditor(text: $task.body)
+            .onKeyPress(keys: [.return], action: { keyPress in
+                var newlineKeyModifier: Bool {
+                    keyPress.modifiers.contains(.option)
+                    || keyPress.modifiers.contains(.shift)
+                }
+                
+                guard !newlineKeyModifier else {
+                    return .ignored
+                }
+                
+                if isTaskBodyTextEntryFocused {
+                    task.body = task.body.trimmingCharacters(in: .whitespacesAndNewlines)
+                }
+                
+                isTaskBodyTextEntryFocused = false
+                isTaskItemFocused = true
+                return .handled
+            })
+            .onKeyPress(keys: [.escape], action: { keyPress in
+                isTaskBodyTextEntryFocused = false
+                isTaskItemFocused = true
+                return .handled
+            })
+            .frame(minWidth: 0, maxWidth: .infinity, minHeight: 12, maxHeight: 48 * 4)
+            .fixedSize(horizontal: false, vertical: true)
+            .focusable()
+            .focused($isTaskBodyTextEntryFocused)
+            .lineLimit(2, reservesSpace: true)
+            .onHover(perform: { isHovering in
+                isHoveringOverTaskBody = isHovering
+            })
+            .pointerStyle(.horizontalText)
+            .background(textBodyBackground(isHovering: isHoveringOverTaskBody, isFocused: isTaskBodyTextEntryFocused))
+            .overlay(alignment: .leading) {
+                if task.body.description.isEmpty {
+                    Text(taskIdea)
+                        .contentTransition(.interpolate)
+                        .animation(.bouncy, value: taskIdea)
+                        .padding(.horizontal, 4)
+                        .opacity(0.4)
+                        .allowsHitTesting(false)
+                }
+                else {
+                    EmptyView()
+                }
+            }
+    }
+    
+    
     func textBodyBackground(isHovering: Bool, isFocused: Bool) -> Color {
         if isFocused {
             Color(NativeColor.textBackgroundColor)
@@ -194,14 +231,74 @@ struct SingleTaskView: View {
     }
     
     
-    private func anyTaskIdea() -> String {
-        switch taskIdeas {
-        case .notStarted, .loading, .failure(_):
-            taskIdea
+    var debugControls: some View {
+        VStack(alignment: .trailing) {
+            Picker("Debug Completion", selection: $task.completionSummary) {
+                ForEach(HostessTask.Completion.Summary.allCases) {
+                    Text($0.rawValue)
+                        .id($0)
+                        .tag($0)
+                }
+            }
             
-        case .success(let taskIdeas):
-            taskIdeas.taskIdeas.randomElement() ?? taskIdea
+            if case .inProgress(percentage: let percentage) = task.completion {
+                Slider(value: .init(get: { percentage }, set: { task.completion = .inProgress(percentage: $0) }),
+                       in: 0...1)
+            }
         }
+        .labelsHidden()
+    }
+    
+    
+    func background(isHovering: Bool, isFocused: Bool) -> some View {
+        ZStack {
+            let focusRingShape = RoundedRectangle(cornerRadius: focusRingThickness)
+            
+            if isFocused {
+                HStack {
+                    Capsule(style: .continuous)
+                        .fill(Color.accentColor)
+                        .frame(width: focusRingThickness)
+                    
+                    Spacer()
+                        .layoutPriority(1)
+                }
+                .overlay {
+                    focusRingShape
+                        .stroke(
+                            Color.accentColor.opacity(0.3),
+                            style: .init(
+                                lineWidth: focusRingThickness,
+                                lineCap: .round,
+                                lineJoin: .round,
+                                miterLimit: .infinity,
+                                dash: [focusRingThickness * 2, focusRingThickness * 3],
+                                dashPhase: focusRingThickness))
+                        .padding(-focusRingThickness/2)
+                }
+                .edgesIgnoringSafeArea(.all)
+            }
+            if isHovering {
+                focusRingShape
+                    .fill(Color.accentColor.opacity(0.1))
+            }
+        }
+    }
+}
+
+
+
+// MARK: Metrics
+
+extension SingleTaskView {
+    
+    var padding: EdgeInsets {
+        .init(eachVertical: 2, eachHorizontal: 8)
+    }
+    
+    
+    var focusRingThickness: CGFloat {
+        padding.leading / 3
     }
 }
 
@@ -220,4 +317,5 @@ struct TaskIdeas {
     
     SingleTaskView(task: $task)
         .padding()
+        .background(.mint.opacity(0.1))
 }

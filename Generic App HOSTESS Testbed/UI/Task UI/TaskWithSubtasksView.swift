@@ -16,7 +16,7 @@ struct TaskWithSubtasksView: View {
     var task: RenderedHostessTask
     
     var body: some View {
-        VStack {
+        VStack(spacing: 0) {
             SingleTaskView(task: $task)
             
             if let subtasks = task.subtasks {
@@ -47,4 +47,5 @@ struct TaskWithSubtasksView: View {
         TaskWithSubtasksView(task: .constant(buyAirFilter))
     }
     .frame(minWidth: 500, minHeight: 200)
+    .padding()
 }

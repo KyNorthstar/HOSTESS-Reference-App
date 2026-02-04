@@ -12,6 +12,10 @@ import HRT
 
 
 
+public typealias RenderedHostessTaskOrError = RenderedHostessObjectOrError<RenderedHostessTask>
+
+
+
 public struct RenderedHostessTask {
     public let id: ShelfId
     public var body: AttributedString

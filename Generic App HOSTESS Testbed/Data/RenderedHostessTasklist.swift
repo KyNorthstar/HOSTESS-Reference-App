@@ -15,7 +15,7 @@ import SHELF
 public struct RenderedHostessTasklist {
     public let id: ShelfId
     public var name: String
-    public var tasks: [RenderedHostessObjectOrError<RenderedHostessTask>]
+    public var tasks: [RenderedHostessTaskOrError]
     //public var tags: [FullyRenderedHostessTag]?
 }
 
