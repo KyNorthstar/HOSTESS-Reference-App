@@ -14,7 +14,7 @@ import SHELF
 
 private extension Shelf {
     struct Key: SwiftUI.EnvironmentKey {
-        static let defaultValue: AsyncBinding<Shelf>? = nil
+        static let defaultValue: EnvironmentValues.ShelfBinding? = nil
     }
 }
 
@@ -22,8 +22,23 @@ private extension Shelf {
 
 public extension EnvironmentValues {
     /// The current SHELF database
-    var shelf: AsyncBinding<Shelf>? {
+    var shelf: ShelfBinding? {
         get { self[Shelf.Key.self] }
         set { self[Shelf.Key.self] = newValue }
     }
+    
+    
+    
+    typealias ShelfBinding = ThrowingAsyncBinding<Shelf, Shelf.InitError>
+}
+
+
+
+public extension EnvironmentValues.ShelfBinding {
+    static let demo = Self {
+            await .demo
+        }
+        set: { newValue in
+            await Shelf.setDemo(newValue)
+        }
 }

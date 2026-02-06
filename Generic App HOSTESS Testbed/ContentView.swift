@@ -90,12 +90,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environment(\.shelf,
-             AsyncBinding {
-                 await .demo
-             }
-             set: { newValue in
-                 await Shelf.setDemo(newValue)
-             }
-        )
+        .environment(\.shelf, .demo)
 }

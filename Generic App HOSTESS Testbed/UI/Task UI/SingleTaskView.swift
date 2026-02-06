@@ -106,20 +106,20 @@ struct SingleTaskView: View {
         
         // MARK: Async
         
-        .task {
-            guard let shelf = await shelf?.wrappedValue else { return }
-            let parent: HostessTask.Parent.ObjectType
-            do {
-                guard let resolvedParent = try await self.task.parent.resolve(using: shelf) else {
-                    return
-                }
-                parent = resolvedParent
-            }
-            catch {
-                assertionFailure(error.localizedDescription)
-                return
-            }
-        }
+//        .task {
+//            guard let shelf = try? await shelf?.wrappedValue else { return }
+//            let parent: HostessTask.Parent.ObjectType
+//            do {
+//                guard let resolvedParent = try await self.task.parent.resolve(using: shelf) else {
+//                    return
+//                }
+//                parent = resolvedParent
+//            }
+//            catch {
+//                assertionFailure(error.localizedDescription)
+//                return
+//            }
+//        }
         
         .task {
             self.taskIdeas = .loading

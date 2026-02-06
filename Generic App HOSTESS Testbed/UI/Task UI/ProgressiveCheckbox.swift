@@ -50,19 +50,43 @@ struct ProgressiveCheckbox: View {
         Circle()
             .fill(Color.gray.opacity(0.001))
             .frame(width: diameter, height: diameter)
+            
             .overlay {
                 let strokeThickness = self.strokeThickness
                 //let drawDiameter = diameter - (strokeThickness)
                 
-                shape(in: .init(x: 0, y: 0, width: diameter, height: diameter),
-                      strokeThickness: strokeThickness)
-                    .fill(colors.color(for: completion))
+                let outerShapeFrame = CGRect(origin: .zero, size: .square(diameter))
+                
+                outerShape(in: outerShapeFrame, strokeThickness: strokeThickness)
+                    .fill(colors.color(for: .outer, completion: completion))
                     .animation(.bouncy, value: completion.summary)
 //                    .stroke(colors.color(for: completion), lineWidth: strokeThickness)
                     .frame(width: diameter, height: diameter)
+                
+//                switch effect {
+//                case .hovered:
+//                    innerShape(for: completion.toggled(), in: outerShapeFrame, strokeThickness: strokeThickness)
+//                        .fill(.red)
+//                case .armed:
+//                    innerShape(for: completion.toggled(), in: outerShapeFrame, strokeThickness: strokeThickness)
+//                        .fill(.green)
+//                case nil:
+                    innerShape(for: completion, in: outerShapeFrame, strokeThickness: strokeThickness)
+                    .fill(colors.color(for: .inner, completion: completion))
+//                }
             }
-            .onPressStateDidChange { _, newState in
-                effect = switch newState {
+        
+//            .overlay(alignment: .bottomLeading) {
+//                VStack {
+//                    Text(String(describing: completion))
+//                        .foregroundStyle(.blue)
+//                }
+//                    .font(.system(size: 5))
+//                    .allowsHitTesting(false)
+//            }
+        
+            .onPressStateDidChange { _, pressState in
+                effect = switch pressState {
                 case .resting, .released(inside: _, modifiers: _):
                     .none
                 case .pressed:
@@ -70,7 +94,7 @@ struct ProgressiveCheckbox: View {
                 }
                 
                 // Take action?
-                switch newState {
+                switch pressState {
                 case .resting, .pressed, .released(inside: false, modifiers: _):
                     break
                     
@@ -83,6 +107,19 @@ struct ProgressiveCheckbox: View {
                     }
                 }
             }
+        
+//            .onHover { isHovered in
+//                effect.isHovered = isHovered
+//            }
+            .onContinuousHover { hoverPhase in
+                switch hoverPhase {
+                case .active(_):
+                    self.effect.isHovered = true
+                    
+                case .ended:
+                    self.effect.isHovered = false
+                }
+            }
     }
 }
 
@@ -90,7 +127,7 @@ struct ProgressiveCheckbox: View {
 
 private extension ProgressiveCheckbox {
     
-    func shape(in frame: CGRect, strokeThickness: CGFloat) -> some Shape {
+    func outerShape(in frame: CGRect, strokeThickness: CGFloat) -> some Shape {
         let strokeThickness = max(1, strokeThickness)
         
         return Path { outerPath in
@@ -103,12 +140,11 @@ private extension ProgressiveCheckbox {
     private func innerCutoutPath(in frame: CGRect, strokeThickness: CGFloat) -> Path {
         Path { innerCutoutPath in
             innerCutoutPath.addEllipse(in: frame.insetBy(dx: strokeThickness, dy: strokeThickness))
-            innerCutoutPath = innerCutoutPath.subtracting(progressSymbolPath(in: frame, strokeThickness: strokeThickness))
         }
     }
     
     
-    private func progressSymbolPath(in frame: CGRect, strokeThickness: CGFloat) -> Path {
+    private func innerShape(for completion: HostessTask.Completion, in frame: CGRect, strokeThickness: CGFloat) -> Path {
         Path { progressSymbolPath in
             
             let innerCircle = Circle().path(in: frame.insetBy(dx: strokeThickness * 2, dy: strokeThickness * 2))
@@ -202,7 +238,33 @@ private extension ProgressiveCheckbox {
     
     
     enum Effect {
+        case hovered
         case armed
+    }
+}
+
+
+
+extension Optional<ProgressiveCheckbox.Effect> {
+    var isHovered: Bool {
+        get {
+            switch self {
+            case .hovered, .armed:
+                true
+                
+            case .none:
+                false
+            }
+        }
+        set {
+            switch self {
+            case .hovered, .armed:
+                return
+                
+            case .none:
+                self = .hovered
+            }
+        }
     }
 }
 
@@ -210,16 +272,30 @@ private extension ProgressiveCheckbox {
 
 extension ProgressiveCheckbox {
     struct Colors {
-        let notStarted: Color
-        let inProgress: InProgress
-        let complete: Color
-        let dropped: Color
+        let notStarted: PerArea<Color>
+        let inProgress: PerArea<InProgress>
+        let complete: PerArea<Color>
+        let dropped: PerArea<Color>
         
         
         
         public struct InProgress {
             let start: Color
             let furtherStages: [Color]
+        }
+        
+        
+        
+        public enum Area {
+            case outer
+            case inner
+        }
+        
+        
+        
+        public struct PerArea<T> {
+            public let outer: T
+            public let inner: T
         }
     }
 }
@@ -239,24 +315,51 @@ extension ProgressiveCheckbox.Colors.InProgress {
 
 
 
+extension ProgressiveCheckbox.Colors.PerArea {
+    
+    init<Base>(in other: ProgressiveCheckbox.Colors.PerArea<Base>, at accessor: (Base) -> T) {
+        self.outer = accessor(other.outer)
+        self.inner = accessor(other.inner)
+    }
+    
+    
+    func `in`(area: ProgressiveCheckbox.Colors.Area) -> T {
+        switch area {
+        case .outer:
+            outer
+        case .inner:
+            inner
+        }
+    }
+}
+
+
+
 extension ProgressiveCheckbox.Colors {
-    func color(for completion: HostessTask.Completion) -> Color {
+    func color(for area: Area, completion: HostessTask.Completion) -> Color {
+        color(completion: completion).in(area: area)
+    }
+    
+    
+    func color(completion: HostessTask.Completion) -> PerArea<Color> {
         switch completion {
         case .notStarted:
             notStarted
             
         case .inProgress(percentage: 0):
-            inProgress.start
+            PerArea(in: inProgress, at: \.start)
             
         case .inProgress(percentage: 1):
-            inProgress.end
+            PerArea(in: inProgress, at: \.end)
             
         case .inProgress(percentage: let percentage):
-            if self.inProgress.furtherStages.isEmpty {
-                inProgress.start
-            }
-            else {
-                interpolateColor(from: inProgress.allColors, samplingAt: percentage)
+            PerArea(in: inProgress) { inProgress in
+                if inProgress.furtherStages.isEmpty {
+                    inProgress.start
+                }
+                else {
+                    interpolateColor(from: inProgress.allColors, samplingAt: percentage)
+                }
             }
             
         case .complete:
@@ -272,11 +375,12 @@ extension ProgressiveCheckbox.Colors {
 
 extension ProgressiveCheckbox.Colors {
     static var `default`: Self {
-        Self(
-            notStarted: .primary,
-            inProgress: InProgress(start: .primary, furtherStages: [.primary, .primary, .primary, .secondary]),
-            complete: .secondary,
-            dropped: .secondary
+        let inProgress = InProgress(start: .primary, furtherStages: [.primary, .primary, .primary, .secondary])
+        return Self(
+            notStarted: PerArea(outer: .primary, inner: .primary),
+            inProgress: PerArea(outer: InProgress(start: .primary, furtherStages: []), inner: inProgress),
+            complete: PerArea(outer: .secondary, inner: .secondary),
+            dropped: PerArea(outer: .secondary, inner: .secondary)
         )
     }
 }

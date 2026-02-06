@@ -68,7 +68,7 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
         case .notStarted:
             ProgressView()
                 .task {
-                    await load(environmentShelf: environmentShelf)
+                    await load()
                 }
             
         case .loading:
@@ -92,10 +92,10 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
     ///
     /// The operation either succeeds completely or fails, surfacing errors
     /// to the caller for appropriate handling.
-    private func load(environmentShelf: AsyncBinding<Shelf>?) async {
+    private func load() async {
         loadingState = .loading
         
-        guard let shelf = await bestShelf(environmentShelf: environmentShelf) else {
+        guard let shelf = await bestShelf() else {
             loadingState = .failure(.noShelfProvided)
             return
         }
@@ -115,13 +115,13 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
     }
     
     
-    func bestShelf(environmentShelf: AsyncBinding<Shelf>?) async -> Shelf? {
+    func bestShelf() async -> Shelf? {
         if let providedShelf = self.shelf {
             return await providedShelf()
         }
-//        else if let environmentShelf {
-//            return await environmentShelf.wrappedValue
-//        }
+        else if let environmentShelf {
+            return try? await environmentShelf.wrappedValue
+        }
         else {
             return nil
         }

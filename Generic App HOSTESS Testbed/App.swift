@@ -15,7 +15,7 @@ import SHELF
 struct App: SwiftUI.App {
     
     @State
-    var shelf: AsyncBinding<Shelf>?
+    var shelf: ThrowingAsyncBinding<Shelf, Shelf.InitError>?
     
     
     var body: some Scene {
@@ -27,16 +27,9 @@ struct App: SwiftUI.App {
             else {
                 ProgressView()
                     .task {
-                        shelf = AsyncBinding {
-                            await .demo
-                        }
-                        set: { newValue in
-                            await Shelf.setDemo(newValue)
-                        }
+                        shelf = await ThrowingAsyncBinding(Shelf.init)
                     }
             }
         }
     }
 }
-
-

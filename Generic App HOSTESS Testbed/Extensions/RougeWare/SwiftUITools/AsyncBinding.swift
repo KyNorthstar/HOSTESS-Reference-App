@@ -10,6 +10,8 @@ import SwiftUI
 
 
 
+// MARK: - ThrowingAsyncBinding
+
 public struct ThrowingAsyncBinding<Value, Failure>: Sendable
 where Value: Sendable,
       Failure: Error,
@@ -23,16 +25,21 @@ where Value: Sendable,
     
     
     private let subject: CurrentValueSubject<LoadingState, Never>
-    private let getter: AsyncBindingGet
-    private let setter: AsyncBindingSet
+    private var storage: Storage
     
     
     public init(initialState: LoadingState = .notStarted,
                 get: @escaping AsyncBindingGet,
                 set: @escaping AsyncBindingSet) {
         self.subject = CurrentValueSubject(initialState)
-        self.getter = get
-        self.setter = set
+        self.storage = .dynamic(getter: get, setter: set)
+    }
+    
+    
+    public init(_ initialValue: () async throws(Failure) -> Value) async {
+        let initialValue = await Result(catching: initialValue)
+        self.subject = CurrentValueSubject(.init(initialValue))
+        self.storage = .static(initialValue)
     }
     
     
@@ -44,7 +51,7 @@ where Value: Sendable,
             return
             
         case .notStarted:
-            update(getter)
+            update(getValue)
         }
     }
     
@@ -113,9 +120,54 @@ where Value: Sendable,
             }
         }
     }
+    
+    
+    private func getValue() async throws(Failure) -> Value {
+        switch storage {
+        case .dynamic(getter: let getter, setter: _):
+            return try await getter()
+            
+        case .static(let value):
+            return try value.get()
+        }
+    }
 }
 
 
+
+public extension ThrowingAsyncBinding {
+    enum Storage: Sendable {
+        case `static`(Result<Value, Failure>)
+        case dynamic(getter: AsyncBindingGet, setter: AsyncBindingSet)
+    }
+}
+
+
+
+public enum FailableLoadingState<Success, Failure>: Sendable
+where Success: Sendable,
+      Failure: Error,
+      Failure: Sendable
+{
+    case notStarted
+    case loading
+    case success(Success)
+    case failure(Failure)
+    
+    
+    init(_ result: Result<Success, Failure>) {
+        switch result {
+        case .success(let value):
+            self = .success(value)
+        case .failure(let error):
+            self = .failure(error)
+        }
+    }
+}
+
+
+
+// MARK: - AsyncBinding
 
 public struct AsyncBinding<Value>: Sendable
 where Value: Sendable
@@ -128,16 +180,20 @@ where Value: Sendable
     
     
     private let subject: CurrentValueSubject<LoadingState, Never>
-    private let getter: AsyncBindingGet
-    private let setter: AsyncBindingSet
+    private var storage: Storage
     
     
     public init(initialState: LoadingState = .notStarted,
                 get: @escaping AsyncBindingGet,
                 set: @escaping AsyncBindingSet) {
         self.subject = CurrentValueSubject(initialState)
-        self.getter = get
-        self.setter = set
+        self.storage = .dynamic(getter: get, setter: set)
+    }
+    
+    
+    public init(_ initialValue: Value) {
+        self.subject = CurrentValueSubject(.success(initialValue))
+        self.storage = .static(initialValue)
     }
     
     
@@ -148,7 +204,7 @@ where Value: Sendable
             return
             
         case .notStarted:
-            update(getter)
+            update(getValue)
         }
     }
     
@@ -203,19 +259,26 @@ where Value: Sendable
             subject.send(.success(value))
         }
     }
+    
+    
+    private func getValue() async -> Value {
+        switch storage {
+        case .dynamic(getter: let getter, setter: _):
+            return await getter()
+            
+        case .static(let value):
+            return value
+        }
+    }
 }
 
 
 
-public enum FailableLoadingState<Success, Failure>: Sendable
-where Success: Sendable,
-      Failure: Error,
-      Failure: Sendable
-{
-    case notStarted
-    case loading
-    case success(Success)
-    case failure(Failure)
+public extension AsyncBinding {
+    enum Storage: Sendable {
+        case `static`(Value)
+        case dynamic(getter: AsyncBindingGet, setter: AsyncBindingSet)
+    }
 }
 
 
