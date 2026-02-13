@@ -14,11 +14,11 @@ import SHELF
 
 struct ContentView: View {
     
+    @Binding
+    var currentAppState: AppState
+    
     @Environment(\.shelf)
     private var shelf
-    
-    @State
-    private var currentTasklistId: ShelfId = .groceryList
     
     @State
     private var currentTasklist: RenderedHostessTasklist?
@@ -54,8 +54,7 @@ struct ContentView: View {
                     }
                 }
                 else {
-                    Text("Loading tasks...")
-                    ProgressView()
+                    ProgressView("Loading tasks...")
                         .task {
                             let loadedTasklist: HostessTasklist
                             let _shelf: Shelf
@@ -63,23 +62,24 @@ struct ContentView: View {
                             do {
                                 _shelf = await shelf.wrappedValue
                                 
-                                guard let _loadedTasklist: HostessTasklist = try await _shelf.object(withId: currentTasklistId)
+                                guard let _loadedTasklist: HostessTasklist = try await currentAppState.currentTasklist.resolve(using: _shelf)
                                 else {
-                                    throw HostessObjectRenderError<Never>.objectNotFound(id: currentTasklistId)
+                                    currentTasklist = .some(.init(id: .init(), name: "New Tasklist", tasks: []))
+                                    return
                                 }
                                 loadedTasklist = _loadedTasklist
-                                
-                                currentTasklist = await .init(renderingFrom: loadedTasklist, using: _shelf)
                             }
                             catch {
                                 self.error = error
+                                return
                             }
+                            
+                            currentTasklist = await .init(renderingFrom: loadedTasklist, using: _shelf)
                         }
                 }
             }
             else {
-                Text("Waiting for SHELF...")
-                ProgressView()
+                ProgressView("Waiting for SHELF...")
             }
         }
         .padding()
@@ -89,6 +89,6 @@ struct ContentView: View {
 
 
 #Preview {
-    ContentView()
+    ContentView(currentAppState: .constant(.demo))
         .environment(\.shelf, .demo)
 }

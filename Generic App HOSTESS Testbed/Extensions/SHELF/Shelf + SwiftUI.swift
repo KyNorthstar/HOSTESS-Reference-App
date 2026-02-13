@@ -9,12 +9,23 @@ import Foundation
 import SwiftUI
 
 import SHELF
+import TODO
 
 
 
 private extension Shelf {
     struct Key: SwiftUI.EnvironmentKey {
-        static let defaultValue: EnvironmentValues.ShelfBinding? = nil
+        static let defaultValue: EnvironmentValues.ShelfBinding = {
+            actor Wrapper {
+                nonisolated(unsafe) var shelf: ThrowingAsyncLazy<Shelf, Shelf.InitError> = .init { //unsafe: If you have a better idea for how to do this, I'm all ears
+                    await Shelf()
+                }
+            }
+            
+            let wrapper = Wrapper()
+            
+            return .init(get: { await wrapper.shelf.wrappedValue }, set: { wrapper.shelf = .init($0) })
+        }()
     }
 }
 
@@ -22,7 +33,7 @@ private extension Shelf {
 
 public extension EnvironmentValues {
     /// The current SHELF database
-    var shelf: ShelfBinding? {
+    var shelf: ShelfBinding {
         get { self[Shelf.Key.self] }
         set { self[Shelf.Key.self] = newValue }
     }

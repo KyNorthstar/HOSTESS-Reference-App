@@ -19,7 +19,10 @@ struct TasklistView: View {
     var tasklist: RenderedHostessTasklist
     
     @FocusState
-    var focusedTask: ShelfId?
+    private var focusedTask: ShelfId?
+    
+    @State
+    private var selection: TextSelection?
     
     
     var body: some View {

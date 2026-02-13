@@ -43,6 +43,12 @@ extension ShelfId {
 
 
 
+extension ShelfObjectReference<HostessTasklist> {
+    static var groceryList: Self { Self(id: .groceryList) }
+}
+
+
+
 extension HostessTask.Parent {
     static var groceryList: Self { Self(id: .groceryList) }
 }

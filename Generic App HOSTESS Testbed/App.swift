@@ -11,25 +11,76 @@ import SHELF
 
 
 
+let currentAppStateId = ShelfId("hJEftuGOSpugE1kPlS3INw")!
+
+
+
 @main
 struct App: SwiftUI.App {
     
     @State
     var shelf: ThrowingAsyncBinding<Shelf, Shelf.InitError>?
     
+    @State
+    var currentAppState: AppState?
+    
+    @State
+    private var error: Error?
+    
     
     var body: some Scene {
         WindowGroup {
-            if let shelf {
-                ContentView()
-                    .environment(\.shelf, shelf)
+            if let error {
+                VStack {
+                    Text("An error occurred while starting up:")
+                    Text(error.localizedDescription)
+                        .textSelection(.enabled)
+                }
             }
             else {
-                ProgressView()
-                    .task {
-                        shelf = await ThrowingAsyncBinding(Shelf.init)
+                if var shelf { // TODO: This feels hacky. What's a better way to save to the Shelf than using `var` here?
+                    if let currentAppState {
+                        ContentView(currentAppState: Binding {
+                            currentAppState
+                        } set: { newAppState in
+                            self.currentAppState = newAppState
+                        })
+                        .environment(\.shelf, shelf)
+                        .onChange(of: currentAppState) { _, currentAppState in
+                            Task {
+                                await shelf.setWrappedValue { shelf in
+                                    do {
+                                        try await shelf.save(currentAppState)
+                                    }
+                                    catch {
+                                        self.error = error
+                                    }
+                                }
+                            }
+                        }
                     }
+                    else {
+                        ProgressView("Loading app state...")
+                            .task {
+                                do {
+                                    currentAppState = try await shelf.wrappedValue.object(withId: currentAppStateId)
+                                    ?? .init(id: .init(), currentTasklist: .init(id: .init()))
+                                }
+                                catch {
+                                    self.error = error
+                                }
+                            }
+                    }
+                }
+                else {
+                    ProgressView("Starting up...")
+                        .task {
+                            shelf = await ThrowingAsyncBinding(Shelf.init)
+                        }
+                }
             }
         }
     }
 }
+
+

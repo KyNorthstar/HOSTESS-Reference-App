@@ -95,10 +95,7 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
     private func load() async {
         loadingState = .loading
         
-        guard let shelf = await bestShelf() else {
-            loadingState = .failure(.noShelfProvided)
-            return
-        }
+        let shelf = await bestShelf()
         
         do {
             guard let loaded: Object = try await shelf.object(withId: id) else {
@@ -115,15 +112,12 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
     }
     
     
-    func bestShelf() async -> Shelf? {
+    func bestShelf() async -> Shelf {
         if let providedShelf = self.shelf {
             return await providedShelf()
         }
-        else if let environmentShelf {
-            return try? await environmentShelf.wrappedValue
-        }
         else {
-            return nil
+            return await environmentShelf.wrappedValue
         }
     }
 }
@@ -185,14 +179,15 @@ extension ShelfLoader1 {
 /// Represents violations of the atomic loading contract
 enum ShelfLoaderError: Error, LocalizedError {
     
-    /// No SHELF was provided to the loader
-    case noShelfProvided
+//    /// No SHELF was provided to the loader
+//    case noShelfProvided
     
     /// One or more identifiers failed to resolve to existing objects
     case objectNotFound
     
     /// An error occurred while trying to load an object from the SHELF
     case readError(Shelf.ReadError)
+    
     
     var errorDescription: String? {
         switch self {
@@ -202,8 +197,8 @@ enum ShelfLoaderError: Error, LocalizedError {
         case .readError(let cause):
             return "Failed to read from the Shelf: \(cause.localizedDescription)"
             
-        case .noShelfProvided:
-            return "No Shelf was provided to the Shelf loader"
+//        case .noShelfProvided:
+//            return "No Shelf was provided to the Shelf loader"
         }
     }
 }

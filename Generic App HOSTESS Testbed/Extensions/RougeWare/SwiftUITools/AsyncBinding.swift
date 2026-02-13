@@ -8,53 +8,86 @@
 @preconcurrency import Combine
 import SwiftUI
 
+import FunctionTools
+import TODO
+
 
 
 // MARK: - ThrowingAsyncBinding
+
+public struct ThrowingAsyncLazy<Value, Failure>: Sendable
+where Value: Sendable,
+      Failure: Error,
+      Failure: Sendable
+{
+    public typealias Result = ThrowingAsyncBinding<Value, Failure>.Result
+    public typealias LoadingState = ThrowingAsyncBinding<Value, Failure>.LoadingState
+    public typealias Get = ThrowingAsyncBinding<Value, Failure>.Get
+    
+    
+    
+    private var storage: ThrowingAsyncBinding<Value, Failure>
+    
+    
+    public init(initialState: LoadingState = .notStarted,
+                get: @escaping Get) {
+        self.storage = .init(initialState: initialState, get: get, set: null)
+    }
+    
+    
+    
+    public init(_ initialValue: Value) {
+        self.storage = .init(initialValue)
+    }
+    
+    
+    
+    public var wrappedValue: Value {
+        get async throws(Failure) {
+            try await storage.wrappedValue
+        }
+    }
+}
+
+
 
 public struct ThrowingAsyncBinding<Value, Failure>: Sendable
 where Value: Sendable,
       Failure: Error,
       Failure: Sendable
 {
-    
+    public typealias Result = Swift.Result<Value, Failure>
     public typealias LoadingState = Generic_App_HOSTESS_Testbed.FailableLoadingState<Value, Failure>
-    public typealias AsyncBindingGet = @Sendable () async throws(Failure) -> Value
-    public typealias AsyncBindingSet = @Sendable (Value) async throws(Failure) -> Void
+    public typealias Get = @Sendable () async throws(Failure) -> Value
+    public typealias Set = @Sendable (Value) async throws(Failure) -> Void
+    public typealias Subject = CurrentValueSubject<LoadingState, Never>
     
     
     
-    private let subject: CurrentValueSubject<LoadingState, Never>
-    private var storage: Storage
+    private let subject: Subject
+    private var valueGenerator: ValueGenerator
     
     
     public init(initialState: LoadingState = .notStarted,
-                get: @escaping AsyncBindingGet,
-                set: @escaping AsyncBindingSet) {
-        self.subject = CurrentValueSubject(initialState)
-        self.storage = .dynamic(getter: get, setter: set)
+                get: @escaping Get,
+                set: @escaping Set) {
+        self.subject = Subject(initialState)
+        self.valueGenerator = .dynamic(getter: get, setter: set)
     }
     
     
-    public init(_ initialValue: () async throws(Failure) -> Value) async {
-        let initialValue = await Result(catching: initialValue)
-        self.subject = CurrentValueSubject(.init(initialValue))
-        self.storage = .static(initialValue)
+    public init(_ initialValue: Value) {
+        let initialValue = Result.success(initialValue)
+        self.subject = Subject(.init(initialValue))
+        self.valueGenerator = .static(initialValue)
     }
-    
-    
-    private func startLoading() {
-        switch subject.value {
-        case .loading,
-                .success(_),
-                .failure(_):
-            return
-            
-        case .notStarted:
-            update(getValue)
-        }
-    }
-    
+}
+
+
+
+// MARK: API - get
+
+public extension ThrowingAsyncBinding {
     
     /// Suspends until the value is successfully loaded or an error occurs.
     ///
@@ -63,10 +96,8 @@ where Value: Sendable,
     /// - Returns: The bound value
     /// - Throws: Any error that occurred trying to get the bound value
     @MainActor
-    public var wrappedValue: Value {
+    var wrappedValue: Value {
         get async throws(Failure) {
-            startLoading()
-            
             // If we already have a terminal state, return it immediately
             switch loadingState {
             case let .success(value):
@@ -99,21 +130,109 @@ where Value: Sendable,
     }
     
     
-    public var loadingState: LoadingState {
+    var loadingState: LoadingState {
         startLoading()
         return subject.value
     }
+}
+
+
+
+// MARK: API - set
+
+public extension ThrowingAsyncBinding {
+    mutating func setWrappedValue<Thrown: Error>(setter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void, onFailure: (Failure) -> Void) async throws(Thrown) {
+        var copy: Value
+        
+        do {
+            copy = try await self.wrappedValue
+        }
+        catch {
+            return onFailure(error)
+        }
+        
+        do {
+            try await setter(&copy)
+        }
+        catch let error {
+            switch error {
+            case .setBinding(let failure):
+                self.update(toFailure: failure)
+                
+            case .propagate(let error):
+                throw error
+            }
+        }
+        
+        self.update(toValue: copy)
+    }
     
     
-    private func update(_ block: @escaping AsyncBindingGet) {
+    mutating func setWrappedValue<Thrown: Error>(throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void) async throws(Thrown) {
+        try await setWrappedValue(setter: throwingSetter, onFailure: update(toFailure:))
+    }
+    
+    
+    mutating func setWrappedValue(setter: (inout Value) async -> Void, onFailure: (Failure) -> Void) async {
+        var copy: Value
+        
+        do {
+            copy = try await self.wrappedValue
+        }
+        catch {
+            return onFailure(error)
+        }
+        
+        await setter(&copy)
+        
+        self.update(toValue: copy)
+    }
+    
+    
+    mutating func setWrappedValue(setter: (inout Value) async -> Void) async {
+        await setWrappedValue(setter: setter, onFailure: update(toFailure:))
+    }
+    
+    
+    mutating func setWrappedValue(_ newValue: Value) {
+        update(toValue: newValue)
+    }
+    
+    
+    /// An error which might happen within the update setter block
+    enum UpdateSetterError<Thrown: Sendable>: Error {
+        case setBinding(Failure)
+        case propagate(Thrown)
+    }
+}
+
+
+
+// MARK: loading
+
+private extension ThrowingAsyncBinding {
+    
+    func startLoading() {
+        switch subject.value {
+        case .loading,
+                .success(_),
+                .failure(_):
+            return
+            
+        case .notStarted:
+            update(generateValue)
+        }
+    }
+    
+    
+    private func update(_ block: @escaping Get) {
         subject.send(.loading)
         Task {
             do {
-                let value = try await block()
-                subject.send(.success(value))
+                update(toValue: try await block())
             }
             catch let error as Failure {
-                subject.send(.failure(error))
+                update(toFailure: error)
             }
             catch {
                 preconditionFailure("The compiler should always ensure that thrown errors here are `Failure`s")
@@ -122,8 +241,18 @@ where Value: Sendable,
     }
     
     
-    private func getValue() async throws(Failure) -> Value {
-        switch storage {
+    private func update(toValue newValue: Value) {
+        subject.send(.success(newValue))
+    }
+    
+    
+    private func update(toFailure newFailure: Failure) {
+        subject.send(.failure(newFailure))
+    }
+    
+    
+    private func generateValue() async throws(Failure) -> Value {
+        switch valueGenerator {
         case .dynamic(getter: let getter, setter: _):
             return try await getter()
             
@@ -135,14 +264,18 @@ where Value: Sendable,
 
 
 
-public extension ThrowingAsyncBinding {
-    enum Storage: Sendable {
-        case `static`(Result<Value, Failure>)
-        case dynamic(getter: AsyncBindingGet, setter: AsyncBindingSet)
+// MARK: Storage
+
+private extension ThrowingAsyncBinding {
+    enum ValueGenerator: Sendable {
+        case `static`(Result)
+        case dynamic(getter: Get, setter: Set)
     }
 }
 
 
+
+// MARK: FailableLoadingState
 
 public enum FailableLoadingState<Success, Failure>: Sendable
 where Success: Sendable,
