@@ -75,7 +75,7 @@ struct App: SwiftUI.App {
                 else {
                     ProgressView("Starting up...")
                         .task {
-                            shelf = await ThrowingAsyncBinding(Shelf.init)
+                            shelf = await ThrowingAsyncBinding(Shelf())
                         }
                 }
             }

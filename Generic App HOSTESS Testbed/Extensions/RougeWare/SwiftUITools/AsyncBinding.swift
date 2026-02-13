@@ -141,7 +141,7 @@ public extension ThrowingAsyncBinding {
 // MARK: API - set
 
 public extension ThrowingAsyncBinding {
-    mutating func setWrappedValue<Thrown: Error>(setter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void, onFailure: (Failure) -> Void) async throws(Thrown) {
+    nonmutating func setWrappedValue<Thrown: Error>(setter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void, onFailure: (Failure) -> Void) async throws(Thrown) {
         var copy: Value
         
         do {
@@ -168,12 +168,12 @@ public extension ThrowingAsyncBinding {
     }
     
     
-    mutating func setWrappedValue<Thrown: Error>(throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void) async throws(Thrown) {
+    nonmutating func setWrappedValue<Thrown: Error>(throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void) async throws(Thrown) {
         try await setWrappedValue(setter: throwingSetter, onFailure: update(toFailure:))
     }
     
     
-    mutating func setWrappedValue(setter: (inout Value) async -> Void, onFailure: (Failure) -> Void) async {
+    nonmutating func setWrappedValue(setter: (inout Value) async -> Void, onFailure: (Failure) -> Void) async {
         var copy: Value
         
         do {
@@ -189,12 +189,12 @@ public extension ThrowingAsyncBinding {
     }
     
     
-    mutating func setWrappedValue(setter: (inout Value) async -> Void) async {
+    nonmutating func setWrappedValue(setter: (inout Value) async -> Void) async {
         await setWrappedValue(setter: setter, onFailure: update(toFailure:))
     }
     
     
-    mutating func setWrappedValue(_ newValue: Value) {
+    nonmutating func setWrappedValue(_ newValue: Value) {
         update(toValue: newValue)
     }
     

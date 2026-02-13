@@ -117,62 +117,62 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
             return await providedShelf()
         }
         else {
-            return await environmentShelf.wrappedValue
+            return try! await environmentShelf.wrappedValue // the Swift compiler crashes without this `try!`
         }
     }
 }
 
 
 
-extension ShelfLoader1 {
-    
-    /// Constructs a loader that will materialize a single object from its identifier.
-    ///
-    /// Type inference flows from the closure parameter type back through the generic parameter,
-    /// establishing type safety without explicit annotation at the call site.
-    init(
-        shelf: @escaping @autoclosure () -> Shelf,
-        _ id: ShelfId,
-        transform: @escaping Transformer,
-        @ViewBuilder content: @escaping ContentBuilder)
-    {
-        self.init(shelf: shelf, id, transform: transform, content: content)
-    }
-    
-    
-    /// Constructs a loader that will materialize a single object from its identifier.
-    ///
-    /// Type inference flows from the closure parameter type back through the generic parameter,
-    /// establishing type safety without explicit annotation at the call site.
-    init(
-        shelf: ShelfLoadingFunction? = nil,
-        _ id: ShelfId,
-        @ViewBuilder content: @escaping ContentBuilder)
-    where Object == Translated
-    {
-        self.init(
-            shelf: shelf,
-            id,
-            transform: { object, _ in object },
-            content: content)
-    }
-    
-    /// Constructs a loader that will materialize a single object from its identifier.
-    ///
-    /// Type inference flows from the closure parameter type back through the generic parameter,
-    /// establishing type safety without explicit annotation at the call site.
-    init(
-        shelf: @escaping @autoclosure () -> Shelf,
-        _ id: ShelfId,
-        @ViewBuilder content: @escaping ContentBuilder)
-    where Object == Translated
-    {
-        self.init(shelf: shelf,
-                  id,
-                  transform: { object, _ in object },
-                  content: content)
-    }
-}
+//extension ShelfLoader1 {
+//    
+//    /// Constructs a loader that will materialize a single object from its identifier.
+//    ///
+//    /// Type inference flows from the closure parameter type back through the generic parameter,
+//    /// establishing type safety without explicit annotation at the call site.
+//    init(
+//        shelf: @escaping @autoclosure () -> Shelf,
+//        _ id: ShelfId,
+//        transform: @escaping Transformer,
+//        @ViewBuilder content: @escaping ContentBuilder)
+//    {
+//        self.init(shelf: shelf, id, transform: transform, content: content)
+//    }
+//    
+//    
+//    /// Constructs a loader that will materialize a single object from its identifier.
+//    ///
+//    /// Type inference flows from the closure parameter type back through the generic parameter,
+//    /// establishing type safety without explicit annotation at the call site.
+//    init(
+//        shelf: ShelfLoadingFunction? = nil,
+//        _ id: ShelfId,
+//        @ViewBuilder content: @escaping ContentBuilder)
+//    where Object == Translated
+//    {
+//        self.init(
+//            shelf: shelf,
+//            id,
+//            transform: { object, _ in object },
+//            content: content)
+//    }
+//    
+//    /// Constructs a loader that will materialize a single object from its identifier.
+//    ///
+//    /// Type inference flows from the closure parameter type back through the generic parameter,
+//    /// establishing type safety without explicit annotation at the call site.
+//    init(
+//        shelf: @escaping @autoclosure () -> Shelf,
+//        _ id: ShelfId,
+//        @ViewBuilder content: @escaping ContentBuilder)
+//    where Object == Translated
+//    {
+//        self.init(shelf: shelf,
+//                  id,
+//                  transform: { object, _ in object },
+//                  content: content)
+//    }
+//}
 
 
 
@@ -206,15 +206,15 @@ enum ShelfLoaderError: Error, LocalizedError {
 
 // MARK: - Preview
 
-#Preview {
-    VStack(alignment: .leading, spacing: 10) {
-        ShelfLoader1(shelf: { await .demo }, .groceryList_buyMilk) { (milk: HostessTask) in
-            Text(milk.body)
-        }
-        
-        ShelfLoader1(shelf: { await .demo }, .groceryList_buyEggs) { (eggs: HostessTask) in
-            Text(eggs.body)
-        }
-    }
-    .padding()
-}
+//#Preview {
+//    VStack(alignment: .leading, spacing: 10) {
+//        ShelfLoader1(shelf: { await .demo }, .groceryList_buyMilk) { (milk: HostessTask) in
+//            Text(milk.body)
+//        }
+//        
+//        ShelfLoader1(shelf: { await .demo }, .groceryList_buyEggs) { (eggs: HostessTask) in
+//            Text(eggs.body)
+//        }
+//    }
+//    .padding()
+//}

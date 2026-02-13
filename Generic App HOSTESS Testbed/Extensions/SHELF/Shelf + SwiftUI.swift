@@ -24,7 +24,12 @@ private extension Shelf {
             
             let wrapper = Wrapper()
             
-            return .init(get: { await wrapper.shelf.wrappedValue }, set: { wrapper.shelf = .init($0) })
+            return .init {
+                try! await wrapper.shelf.wrappedValue // the Swift compiler crashes without this `try!`
+            }
+            set: {
+                wrapper.shelf = .init($0)
+            }
         }()
     }
 }
@@ -45,11 +50,24 @@ public extension EnvironmentValues {
 
 
 
-public extension EnvironmentValues.ShelfBinding {
-    static let demo = Self {
-            await .demo
-        }
-        set: { newValue in
-            await Shelf.setDemo(newValue)
-        }
+public extension ThrowingAsyncBinding where Value == Shelf, Failure == Shelf.InitError {
+//    static var demo: ThrowingAsyncBinding<Shelf, Shelf.InitError> {
+//        .init(initialState: .notStarted,
+//              get: { () async -> Shelf in
+//            await .demo
+//        },
+//              set: { (newValue: Shelf) async -> Void in
+//            await Shelf.setDemo(newValue)
+//        }
+//        )
+//    }
+    
+    
+//    static var fatalError: Self {
+//        return Self.init(get: fatalGet, set: fatalSet)
+//    }
+//    
+//    
+//    static func fatalGet() async -> Value { Swift.fatalError() }
+//    static func fatalSet(_: Value) async -> Void { Swift.fatalError() }
 }

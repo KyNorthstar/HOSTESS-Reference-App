@@ -94,10 +94,9 @@ where TrackedValue: ShelfData,
             .onChange(of: trackedValue) { _, newValue in
                 Task {
                     var shelf = self.shelf
-                    defer { self.shelf = shelf }
                     
                     do {
-                        try await shelf.setWrappedValue(throwingSetter: { (shelf) throws(ThrowingAsyncBinding<Shelf, Shelf.InitError>.UpdateSetterError<Shelf.UpdateError>) -> Void in
+                        try await shelf.setWrappedValue { (shelf) throws(ThrowingAsyncBinding<Shelf, Shelf.InitError>.UpdateSetterError<Shelf.UpdateError>) -> Void in
                             do {
                                 try await shelf.update(objectWithId: newValue.id, ofType: TrackedValue.self) { savedValue in
                                     savedValue = newValue
@@ -112,7 +111,7 @@ where TrackedValue: ShelfData,
                             catch {
                                 preconditionFailure("The Swift compiler forgot it supports typed-throws")
                             }
-                        })
+                        }
                     }
                     catch let error as Shelf.UpdateError {
                         onUpdateError(error)
