@@ -17,8 +17,7 @@ import TODO
 
 public struct ThrowingAsyncLazy<Value, Failure>: Sendable
 where Value: Sendable,
-      Failure: Error,
-      Failure: Sendable
+      Failure: Error & Sendable
 {
     public typealias Result = ThrowingAsyncBinding<Value, Failure>.Result
     public typealias LoadingState = ThrowingAsyncBinding<Value, Failure>.LoadingState
@@ -141,7 +140,11 @@ public extension ThrowingAsyncBinding {
 // MARK: API - set
 
 public extension ThrowingAsyncBinding {
-    nonmutating func setWrappedValue<Thrown: Error>(setter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void, onFailure: (Failure) -> Void) async throws(Thrown) {
+    nonmutating func setWrappedValue<Thrown: Error>(
+        throwing _: Thrown.Type = Thrown.self,
+        throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void,
+        onFailure: (Failure) -> Void)
+    async throws(Thrown) {
         var copy: Value
         
         do {
@@ -152,7 +155,7 @@ public extension ThrowingAsyncBinding {
         }
         
         do {
-            try await setter(&copy)
+            try await throwingSetter(&copy)
         }
         catch let error {
             switch error {
@@ -168,8 +171,14 @@ public extension ThrowingAsyncBinding {
     }
     
     
-    nonmutating func setWrappedValue<Thrown: Error>(throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void) async throws(Thrown) {
-        try await setWrappedValue(setter: throwingSetter, onFailure: update(toFailure:))
+    nonmutating func setWrappedValue<Thrown: Error>(
+        throwing _: Thrown.Type = Thrown.self,
+        throwingSetter: (inout Value) async throws(UpdateSetterError<Thrown>) -> Void)
+    async throws(Thrown) {
+        try await setWrappedValue(
+            throwing: Thrown.self,
+            throwingSetter: throwingSetter,
+            onFailure: update(toFailure:))
     }
     
     
@@ -199,11 +208,16 @@ public extension ThrowingAsyncBinding {
     }
     
     
-    /// An error which might happen within the update setter block
-    enum UpdateSetterError<Thrown: Sendable>: Error {
-        case setBinding(Failure)
-        case propagate(Thrown)
-    }
+    
+    typealias UpdateSetterError<ThrownError: Error & Sendable> = Generic_App_HOSTESS_Testbed.UpdateSetterError<Failure, ThrownError>
+}
+
+
+
+/// An error which might happen within the update setter block
+public enum UpdateSetterError<BindingError: Error, ThrownError: Error & Sendable>: Error {
+    case setBinding(BindingError)
+    case propagate(ThrownError)
 }
 
 

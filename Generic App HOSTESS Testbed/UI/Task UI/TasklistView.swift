@@ -15,6 +15,9 @@ import SHELF
 
 struct TasklistView: View {
     
+    @Environment(\.shelf)
+    private var shelf
+    
     @Binding
     var tasklist: RenderedHostessTasklist
     
@@ -67,7 +70,27 @@ struct TasklistView: View {
             }
             return .handled
         }
+        
+        .onChange(of: tasklist) { _, tasklist in
+            Task {
+                try await shelf.setWrappedValue { (shelf) throws(UpdateSetterError) in
+                    do {
+                        try await tasklist.update(in: &shelf)
+                    }
+                    catch let error as Shelf.UpdateError { // This is the only possible error
+                        throw .propagate(error)
+                    }
+                    catch {
+                        fatalError("This branch is unreachable, but Swift's typed-throws implementation is still shitty in Xcode 26.3, and this is the only way to get this code to compile.")
+                    }
+                }
+            }
+        }
     }
+    
+    
+    
+    typealias UpdateSetterError = Generic_App_HOSTESS_Testbed.UpdateSetterError<Shelf.InitError, Shelf.UpdateError>
 }
 
 

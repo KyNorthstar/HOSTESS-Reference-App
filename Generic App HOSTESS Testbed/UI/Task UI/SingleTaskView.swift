@@ -104,7 +104,12 @@ struct SingleTaskView: View {
         }
         
         
-        // MARK: Async
+        // MARK: Updates
+        
+        
+        
+        
+        // MARK: Setup
         
 //        .task {
 //            guard let shelf = try? await shelf?.wrappedValue else { return }

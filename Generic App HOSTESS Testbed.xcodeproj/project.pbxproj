@@ -11,11 +11,13 @@
 		0913F2CE2F198D7600FA74E9 /* CrossKitTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2CD2F198D7600FA74E9 /* CrossKitTypes */; };
 		0913F2D92F19A44900FA74E9 /* CollectionTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2D82F19A44900FA74E9 /* CollectionTools */; };
 		0923ADD52F18AD7C0097C52D /* RectangleTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0923ADD42F18AD7C0097C52D /* RectangleTools */; };
+		09CCA3FF2F3FAEA400C3CCDC /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */; };
 		09D395892F0DF2B40030F711 /* HRT in Frameworks */ = {isa = PBXBuildFile; productRef = 09D395882F0DF2B40030F711 /* HRT */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		0948A9102F0B72C50060F3C6 /* Generic App HOSTESS Testbed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Generic App HOSTESS Testbed.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -45,6 +47,7 @@
 		0948A9072F0B72C50060F3C6 = {
 			isa = PBXGroup;
 			children = (
+				09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */,
 				0948A9122F0B72C50060F3C6 /* Generic App HOSTESS Testbed */,
 				0948A9112F0B72C50060F3C6 /* Products */,
 			);
@@ -134,6 +137,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				09CCA3FF2F3FAEA400C3CCDC /* LICENSE.txt in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -38,7 +38,7 @@ struct App: SwiftUI.App {
                 }
             }
             else {
-                if var shelf { // TODO: This feels hacky. What's a better way to save to the Shelf than using `var` here?
+                if let shelf { // TODO: This feels hacky. What's a better way to save to the Shelf than using `var` here?
                     if let currentAppState {
                         ContentView(currentAppState: Binding {
                             currentAppState
@@ -46,7 +46,7 @@ struct App: SwiftUI.App {
                             self.currentAppState = newAppState
                         })
                         .environment(\.shelf, shelf)
-                        .onChange(of: currentAppState) { _, currentAppState in
+                        .onChange(of: currentAppState, initial: true) { _, currentAppState in
                             Task {
                                 await shelf.setWrappedValue { shelf in
                                     do {
@@ -64,7 +64,7 @@ struct App: SwiftUI.App {
                             .task {
                                 do {
                                     currentAppState = try await shelf.wrappedValue.object(withId: currentAppStateId)
-                                    ?? .init(id: .init(), currentTasklist: .init(id: .init()))
+                                    ?? .init(id: currentAppStateId, currentTasklist: .init(id: .init()))
                                 }
                                 catch {
                                     self.error = error

@@ -51,16 +51,16 @@ public extension EnvironmentValues {
 
 
 public extension ThrowingAsyncBinding where Value == Shelf, Failure == Shelf.InitError {
-//    static var demo: ThrowingAsyncBinding<Shelf, Shelf.InitError> {
-//        .init(initialState: .notStarted,
-//              get: { () async -> Shelf in
-//            await .demo
-//        },
-//              set: { (newValue: Shelf) async -> Void in
-//            await Shelf.setDemo(newValue)
-//        }
-//        )
-//    }
+    static var demo: ThrowingAsyncBinding<Shelf, Shelf.InitError> {
+        .init(initialState: .notStarted,
+              get: { () async -> Shelf in
+            await .demo
+        },
+              set: { (newValue: Shelf) async -> Void in
+            await Shelf.setDemo(newValue)
+        }
+        )
+    }
     
     
 //    static var fatalError: Self {

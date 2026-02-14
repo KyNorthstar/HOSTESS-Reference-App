@@ -9,6 +9,7 @@ import SwiftUI
 
 import HRT
 import SHELF
+import SimpleLogging
 
 
 
@@ -32,6 +33,7 @@ struct ContentView: View {
             if let error {
                 Text(error.localizedDescription)
             }
+            
             if let currentTasklist {
                 TasklistView(
                     tasklist: Binding {
@@ -41,14 +43,21 @@ struct ContentView: View {
                         self.currentTasklist = $0
                     }
                 )
-                .onChange(of: currentTasklist) { _, currentTasklist in
+                .onChange(of: currentTasklist, initial: true) { _, currentTasklist in
                     Task {
                         var shelf = await shelf.wrappedValue
-                        let recreated = await currentTasklist.recreate(using: shelf)
-                        try await shelf.update(objectWithId: currentTasklist.id, ofType: HostessTasklist.self) { object in
-                            object = recreated
+                        try await currentTasklist.update(in: &shelf)
+                        
+                        for task in currentTasklist.tasks {
+                            switch task {
+                            case .success(let task):
+                                try await task.update(in: &shelf)
+                                
+                            case .failure(let error):
+                                log(error: error, "Couldn't save task \(error.id)")
+                                assertionFailure()
+                            }
                         }
-                        onObjectNotFound: {}
                     }
                 }
             }

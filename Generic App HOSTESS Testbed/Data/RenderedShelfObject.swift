@@ -12,6 +12,7 @@ import SHELF
 
 
 
+/// A SHELF object transformed into a ready-to-use in-memory object, with fields resolved as appropriate so they can just be displayed to the user as-is
 public protocol RenderedShelfObject: AnyHostessType, Equatable, ShelfIdentifiable {
     associatedtype RawData: ShelfData
     associatedtype RenderError: ShelfObjectRenderError
@@ -30,6 +31,26 @@ public protocol RenderedShelfObject: AnyHostessType, Equatable, ShelfIdentifiabl
 public protocol ShelfObjectRenderError: Error, Equatable, ShelfIdentifiable {}
 
 
+
+public extension RenderedShelfObject {
+    /// Ensures that the given SHELF has an up-to-date version of the SHELF data that this one rendered
+    ///
+    /// - Parameter shelf: The SHELF to update
+    func update(in shelf: inout Shelf) async throws(Shelf.UpdateError) {
+        let recreated = await self.recreate(using: shelf)
+        
+        try await shelf.update(objectWithId: id, ofType: RawData.self) { onDrive in
+            onDrive = recreated
+        }
+        onObjectNotFound: {
+            .saveNewObject(recreated)
+        }
+    }
+}
+
+
+
+// MARK: - Never sugar
 
 extension Never: @retroactive ShelfIdentifiable {
     public var id: ShelfId { self }
