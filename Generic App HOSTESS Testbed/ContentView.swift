@@ -46,15 +46,15 @@ struct ContentView: View {
                 .onChange(of: currentTasklist, initial: true) { _, currentTasklist in
                     Task {
                         var shelf = await shelf.wrappedValue
-                        try await currentTasklist.update(in: &shelf)
+                        try await currentTasklist.saveRecursively(in: &shelf)
                         
                         for task in currentTasklist.tasks {
-                            switch task {
-                            case .success(let task):
-                                try await task.update(in: &shelf)
-                                
-                            case .failure(let error):
-                                log(error: error, "Couldn't save task \(error.id)")
+                            do {
+                                try await task.get().save(in: &shelf)
+                                log(verbose: "Saved task \(task.id)")
+                            }
+                            catch {
+                                log(error: error, "Couldn't save task \(task.id)")
                                 assertionFailure()
                             }
                         }

@@ -75,7 +75,7 @@ struct TasklistView: View {
             Task {
                 try await shelf.setWrappedValue { (shelf) throws(UpdateSetterError) in
                     do {
-                        try await tasklist.update(in: &shelf)
+                        try await tasklist.save(in: &shelf)
                     }
                     catch let error as Shelf.UpdateError { // This is the only possible error
                         throw .propagate(error)

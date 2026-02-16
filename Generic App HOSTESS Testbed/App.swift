@@ -38,7 +38,7 @@ struct App: SwiftUI.App {
                 }
             }
             else {
-                if let shelf { // TODO: This feels hacky. What's a better way to save to the Shelf than using `var` here?
+                if let shelf {
                     if let currentAppState {
                         ContentView(currentAppState: Binding {
                             currentAppState

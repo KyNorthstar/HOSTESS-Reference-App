@@ -9,6 +9,7 @@ import Foundation
 
 import HRT
 import SHELF
+import SimpleLogging
 
 
 
@@ -36,7 +37,7 @@ public extension RenderedShelfObject {
     /// Ensures that the given SHELF has an up-to-date version of the SHELF data that this one rendered
     ///
     /// - Parameter shelf: The SHELF to update
-    func update(in shelf: inout Shelf) async throws(Shelf.UpdateError) {
+    func save(in shelf: inout Shelf) async throws(Shelf.UpdateError) {
         let recreated = await self.recreate(using: shelf)
         
         try await shelf.update(objectWithId: id, ofType: RawData.self) { onDrive in
@@ -44,6 +45,36 @@ public extension RenderedShelfObject {
         }
         onObjectNotFound: {
             .saveNewObject(recreated)
+        }
+    }
+    
+    
+    func saveRecursively(in shelf: inout Shelf) async throws(Shelf.UpdateError) {
+        try await save(in: &shelf)
+        
+        let mirror = Mirror(reflecting: self)
+        for child in mirror.children {
+            if let renderedChild = child.value as? (any RenderedShelfObject) {
+                do {
+                    try await renderedChild.saveRecursively(in: &shelf)
+                }
+                catch {
+                    log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
+                }
+            }
+            else if let renderedChildArray = child.value as? [any RenderedShelfObject] {
+                for renderedChild in renderedChildArray {
+                    do {
+                        try await renderedChild.saveRecursively(in: &shelf)
+                    }
+                    catch {
+                        log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
+                    }
+                }
+            }
+            else {
+                log(verbose: "\(type(of: child.value)) is not a rendered SHELF object")
+            }
         }
     }
 }
