@@ -9,6 +9,7 @@ import Combine
 import FoundationModels
 import SwiftUI
 
+import ConcurrencyTools
 import CrossKitTypes
 import HRT
 import RectangleTools

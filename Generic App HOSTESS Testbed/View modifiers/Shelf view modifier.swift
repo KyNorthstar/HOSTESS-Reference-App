@@ -9,6 +9,7 @@ import SwiftUI
 
 import FunctionTools
 import SHELF
+import ConcurrencyTools
 
 
 
@@ -93,8 +94,6 @@ where TrackedValue: ShelfData,
         content
             .onChange(of: trackedValue) { _, newValue in
                 Task {
-                    var shelf = self.shelf
-                    
                     do {
                         try await shelf.setWrappedValue { (shelf) throws(ThrowingAsyncBinding<Shelf, Shelf.InitError>.UpdateSetterError<Shelf.UpdateError>) -> Void in
                             do {

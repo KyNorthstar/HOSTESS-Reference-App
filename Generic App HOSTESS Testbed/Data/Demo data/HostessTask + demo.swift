@@ -70,6 +70,21 @@ extension ShelfId {
 
 
 
+extension ShelfObjectReference<HostessTask> {
+    static let groceryList_buyMilk =    Self(id: .groceryList_buyMilk)
+    static let groceryList_buyBread =   Self(id: .groceryList_buyBread)
+    static let groceryList_buyCheese =  Self(id: .groceryList_buyCheese)
+    static let groceryList_buyButter =  Self(id: .groceryList_buyButter)
+    static let groceryList_buyChicken = Self(id: .groceryList_buyChicken)
+    static let groceryList_buyEggs =    Self(id: .groceryList_buyEggs)
+    
+    static let groceryList_buyAirFilter =               Self(id: .groceryList_buyAirFilter)
+    static let groceryList_measureAirFilter =           Self(id: .groceryList_measureAirFilter)
+    static let groceryList_compareDifferentAirFilters = Self(id: .groceryList_compareDifferentAirFilters)
+}
+
+
+
 extension HostessTask.Parent {
     static var groceryList_buyMilk: Self    { Self(id: .groceryList_buyMilk) }
     static var groceryList_buyBread: Self   { Self(id: .groceryList_buyBread) }

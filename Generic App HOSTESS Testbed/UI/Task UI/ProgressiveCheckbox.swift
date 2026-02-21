@@ -402,7 +402,7 @@ extension ProgressiveCheckbox.Colors {
         HStack {
             ProgressiveCheckbox(completion: $topCheckboxCompletion)
             
-            Text("\(topCheckboxCompletion)")
+            Text(verbatim: "\(topCheckboxCompletion)")
         }
         
         HStack {

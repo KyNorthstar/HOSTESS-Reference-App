@@ -7,6 +7,7 @@
 
 import Foundation
 
+import AsyncAlgorithms
 import HRT
 import SHELF
 import OptionalTools
@@ -15,28 +16,46 @@ import OptionalTools
 
 // MARK: - Collection rendering
 
-internal extension RenderedShelfObject {
+internal extension RenderedHostessObject {
+    static func renderCollection<C>(
+        _ collection: C,
+        in hostess: Hostess)
+    async -> [RenderedHostessObjectOrError<Self>]
+    where C: Collection,
+          C.Element: ShelfIdentifiable
+    {
+        await renderCollection(
+            collection.map(\.id),
+            in: hostess
+        )
+    }
+    
+    
     /// Asynchronously converts the given collection of SHELF IDs into an array of fully-rendered HOSTESS objects of the given (or implied) type by looking them up from the given `Shelf`
     ///
     /// - Parameters:
     ///   - collection: IDs of objects stored in the given `shelf`
-    ///   - shelf:      The `Shelf` with the objects corresponding to the `collection` of SHELF IDs
-    ///   - result:     _optional_ - The type of fully-rendered HOSTESS object to return. Defaults to whichever type is implied from the return value at the callsite
+    ///   - hostess:    The `Hostess` with the objects corresponding to the `collection` of IDs
     ///
     /// - Returns: An array of fully-rendered HOSTESS objects, andor errors that occurred while attempting to render
-    static func renderCollection<C, Rendered>(_ collection: C, with shelf: Shelf, as result: Rendered.Type = Rendered.self) async -> [Result<Rendered, HostessObjectRenderError<Rendered.RenderError>>]
+    static func renderCollection<C>(
+        _ collection: C,
+        in hostess: Hostess)
+    async -> [RenderedHostessObjectOrError<Self>]
     where C: Collection,
-          C.Element == ShelfId,
-          Rendered: RenderedShelfObject
+          C.Element == ShelfId
     {
-        typealias LegalError = HostessObjectRenderError<Rendered.RenderError>
-        return await AsyncStream(collection.enumerated())
-            .map { (index, subtaskId)-> (index: Int, result: Result<Rendered.RawData, LegalError>) in
+        typealias LegalError = RenderedHostessObjectOrError<Self>.Failure
+        typealias FoundObject = Self.HostessObject
+        
+        return await collection.enumerated()
+            .async
+            .map { (index, subtaskId)-> (index: Int, result: Result<FoundObject, LegalError>) in
                 do {
-                    let foundObject: Rendered.RawData?
+                    let foundObject: FoundObject?
                     
                     do {
-                        foundObject = try await shelf.object(withId: subtaskId)
+                        foundObject = try await hostess.any(withId: subtaskId)
                     }
                     catch let error as Shelf.ReadError { // very upset at the Swift compiler for making me do this
                         assertionFailure(error.localizedDescription)
@@ -57,22 +76,8 @@ internal extension RenderedShelfObject {
                 }
             }
         
-            .compactMap { (index, rawSubtask) -> (index: Int, result: Result<Rendered, LegalError>) in
-                switch rawSubtask {
-                case .failure(let error): return (index, .failure(error))
-                    
-                case .success(let rawSubtask):
-                    do {
-                        return (index, .success(try await Rendered(renderingFrom: rawSubtask, using: shelf)))
-                    }
-                    catch let error as Rendered.RenderError {
-                        assertionFailure(error.localizedDescription)
-                        return (index, .failure(.renderError(error)))
-                    }
-                    catch { // very upset at the Swift compiler for making me do this
-                        return (index, .failure(.impossibleError(objectId: rawSubtask.id, error)))
-                    }
-                }
+            .compactMap { (index, rawSubtask) in
+                await render(in: hostess, index: index, rawSubtask: rawSubtask)
             }
         
             .collect()
@@ -85,17 +90,58 @@ internal extension RenderedShelfObject {
 
 
 
+private extension RenderedHostessObject {
+    typealias Rendered = RenderedHostessObjectOrError<Self>
+    typealias LegalError = Rendered.Failure
+    
+    
+    
+    static func render(
+        in hostess: Hostess,
+        index: Int,
+        rawSubtask: Result<HostessObject, LegalError>)
+    async -> (index: Int, result: Rendered)
+    {
+        switch rawSubtask {
+        case .failure(let error): return (index, .failure(error))
+            
+        case .success(let rawSubtask):
+            return (index, .success(await Self(renderingFrom: rawSubtask, in: hostess)))
+        }
+    }
+}
+
+
+
 // MARK: - Conveniences
 
-public typealias RenderedHostessObjectOrError<Rendered: RenderedShelfObject> = Result<Rendered, HostessObjectRenderError<Rendered.RenderError>>
+public typealias RenderedHostessObjectOrError<Rendered: RenderedHostessObject> = Result<Rendered, HostessObjectRenderError<Never>>
+
+
+
+//extension Result
+//where Success: RenderedShelfObject,
+//      Failure == HostessObjectRenderError<Success.RenderError>
+//{
+//    public var id: ShelfId {
+//        switch self {
+//        case .success(let object):
+//            return object.id
+//            
+//        case .failure(let error):
+//            return error.id
+//        }
+//    }
+//}
 
 
 
 extension Result: @retroactive Identifiable,
                   @retroactive ShelfIdentifiable
-where Success: RenderedShelfObject,
-      Failure == HostessObjectRenderError<Success.RenderError>
+where Success: RenderedHostessObject,
+      Failure == RenderedHostessObjectOrError<Success>.Failure
 {
+    /// The identifier for the SHELF object that this Result tried to resolve
     public var id: ShelfId {
         switch self {
         case .success(let object):
@@ -104,6 +150,12 @@ where Success: RenderedShelfObject,
         case .failure(let error):
             return error.id
         }
+    }
+    
+    
+    /// References the SHELF object behind the success of this result
+    public var shelfObjectReference: ShelfObjectReference<Success.HostessObject> {
+        .init(id: id)
     }
 }
 

@@ -7,9 +7,11 @@
 
 import SwiftUI
 
+import ConcurrencyTools
 import SafeCollectionAccess
 import HRT
 import SHELF
+import SimpleLogging
 
 
 
@@ -73,7 +75,7 @@ struct TasklistView: View {
         
         .onChange(of: tasklist) { _, tasklist in
             Task {
-                try await shelf.setWrappedValue { (shelf) throws(UpdateSetterError) in
+                try await shelf.setWrappedValue { @Sendable (shelf) throws(UpdateSetterError) in
                     do {
                         try await tasklist.save(in: &shelf)
                     }
@@ -90,7 +92,7 @@ struct TasklistView: View {
     
     
     
-    typealias UpdateSetterError = Generic_App_HOSTESS_Testbed.UpdateSetterError<Shelf.InitError, Shelf.UpdateError>
+    typealias UpdateSetterError = ConcurrencyTools.UpdateSetterError<Shelf.InitError, Shelf.UpdateError>
 }
 
 
@@ -114,6 +116,11 @@ private extension TasklistView {
               let nextTaskIndex = newIndex(flattenedTasks, currentTaskIndex)
         else {
             focusedTask = flattenedTasks.first?.id
+            return
+        }
+        
+        guard flattenedTasks.contains(index: nextTaskIndex) else {
+            log(error: "New index was not contained within flattened tasks")
             return
         }
         

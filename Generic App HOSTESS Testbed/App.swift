@@ -7,7 +7,9 @@
 
 import SwiftUI
 
+import ConcurrencyTools
 import SHELF
+@preconcurrency import SimpleLogging
 
 
 
@@ -19,13 +21,25 @@ let currentAppStateId = ShelfId("hJEftuGOSpugE1kPlS3INw")!
 struct App: SwiftUI.App {
     
     @State
-    var shelf: ThrowingAsyncBinding<Shelf, Shelf.InitError>?
+    var shelf: EnvironmentValues.ShelfBinding?
     
     @State
     var currentAppState: AppState?
     
     @State
     private var error: Error?
+    
+    
+    init() {
+        #if DEBUG
+        do {
+            LogManager.defaultChannels.append(try LogChannel(name: "All", location: .standardOutAndError, severityFilter: .allowAll, logSeverityNameStyle: .emoji))
+        }
+        catch {
+            assertionFailure("Failed to set up logging: \(error)")
+        }
+        #endif
+    }
     
     
     var body: some Scene {
@@ -39,44 +53,61 @@ struct App: SwiftUI.App {
             }
             else {
                 if let shelf {
-                    if let currentAppState {
-                        ContentView(currentAppState: Binding {
-                            currentAppState
-                        } set: { newAppState in
-                            self.currentAppState = newAppState
-                        })
-                        .environment(\.shelf, shelf)
-                        .onChange(of: currentAppState, initial: true) { _, currentAppState in
-                            Task {
-                                await shelf.setWrappedValue { shelf in
-                                    do {
-                                        try await shelf.save(currentAppState)
-                                    }
-                                    catch {
-                                        self.error = error
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else {
-                        ProgressView("Loading app state...")
-                            .task {
-                                do {
-                                    currentAppState = try await shelf.wrappedValue.object(withId: currentAppStateId)
-                                    ?? .init(id: currentAppStateId, currentTasklist: .init(id: .init()))
-                                }
-                                catch {
-                                    self.error = error
-                                }
-                            }
-                    }
+                    body(shelf: shelf)
                 }
                 else {
                     ProgressView("Starting up...")
                         .task {
                             shelf = await ThrowingAsyncBinding(Shelf())
                         }
+                }
+            }
+        }
+    }
+}
+
+
+
+extension App {
+    @ViewBuilder
+    func body(shelf: EnvironmentValues.ShelfBinding) -> some View {
+        if let currentAppState {
+            body(shelf: shelf, currentAppState: currentAppState)
+        }
+        else {
+            ProgressView("Loading app state...")
+                .task {
+                    do {
+                        currentAppState = try await shelf.wrappedValue.object(withId: currentAppStateId)
+                        ?? .init(id: currentAppStateId, currentTasklist: .init(id: .init()))
+                    }
+                    catch {
+                        self.error = error
+                    }
+                }
+        }
+    }
+    
+    
+    @ViewBuilder
+    func body(shelf: EnvironmentValues.ShelfBinding, currentAppState: AppState) -> some View {
+        ContentView(currentAppState: Binding {
+            currentAppState
+        } set: { newAppState in
+            self.currentAppState = newAppState
+        })
+        .environment(\.shelf, shelf)
+        .onChange(of: currentAppState, initial: true) { _, currentAppState in
+            Task {
+                await shelf.setWrappedValue { shelf in
+                    do {
+                        try await shelf.save(currentAppState)
+                    }
+                    catch {
+                        await MainActor.run {
+                            self.error = error
+                        }
+                    }
                 }
             }
         }
