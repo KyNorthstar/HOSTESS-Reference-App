@@ -13,7 +13,7 @@ import SimpleLogging
 
 
 /// A SHELF object transformed into a ready-to-use in-memory object, with fields resolved as appropriate so they can just be displayed to the user as-is
-@available(*, deprecated, message: "`RenderedHostessObject` replaces this")
+@available(*, unavailable, message: "`RenderedHostessObject` replaces this")
 public protocol RenderedShelfObject: Sendable, Equatable, ShelfIdentifiable {
     associatedtype RawData: ShelfData
     associatedtype RenderError: ShelfObjectRenderError
@@ -33,6 +33,7 @@ public protocol ShelfObjectRenderError: Error, Equatable, ShelfIdentifiable {}
 
 
 
+@available(*, unavailable)
 public extension RenderedShelfObject {
     
     /// Ensures that the given SHELF has an up-to-date version of the SHELF data that this one rendered

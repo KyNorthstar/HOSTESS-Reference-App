@@ -7,15 +7,21 @@
 
 import SwiftUI
 
+import ConcurrencyTools
 import HRT
 import SHELF
 
 
 
-struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfObject>: View {
+struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedHostessObject>: View
+where Content.RenderedSubject == Subject
+{
+    
+    @Environment(\.hostess)
+    private var environmentHostess
     
     @State
-    private var shelf: Shelf?
+    private var hostess: Hostess?
     
     @State
     private var subject: Subject?
@@ -29,6 +35,22 @@ struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfOb
     let content: (_ mutating: Binding<Subject>) -> Content
     
     
+    init(hostess: Hostess? = nil, subjectId: ShelfId, content: @escaping (_: Binding<Subject>) -> Content) {
+        self.hostess = hostess
+        self.subjectId = subjectId
+        self.content = content
+    }
+    
+    
+    init(hostess: Hostess? = nil, subjectId: ShelfId) {
+        self.init(
+            hostess: hostess,
+            subjectId: subjectId,
+            content:  { Content.init(mutating: $0) }
+        )
+    }
+    
+    
     var body: some View {
         VStack {
             if let error {
@@ -39,7 +61,7 @@ struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfOb
                     .padding()
             }
             
-            else if let shelf {
+            else if let hostess {
                 if let subject {
                     content(.init(get: {
                         subject
@@ -52,11 +74,11 @@ struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfOb
                         .controlSize(.large)
                         .task {
                             do {
-                                guard let raw: Subject.RawData = try await shelf.object(withId: subjectId) else {
+                                guard let raw: Subject.HostessObject = try await hostess.any(withId: subjectId) else {
                                     self.error = LoadingError.couldNotFindSubject(id: subjectId)
                                     return
                                 }
-                                subject = try await .init(renderingFrom: raw, using: shelf)
+                                subject = await .init(renderingFrom: raw, in: hostess)
                             }
                             catch {
                                 self.error = error
@@ -68,7 +90,7 @@ struct LazyHostessPreview<Content: HostessMutatingView, Subject: RenderedShelfOb
                 ProgressView()
                     .controlSize(.mini)
                     .task {
-                        shelf = await .demo
+                        hostess = environmentHostess
                     }
             }
         }
@@ -103,7 +125,7 @@ extension LazyHostessPreview {
 
 
 protocol HostessMutatingView: View {
-    associatedtype RenderedSubject: RenderedShelfObject
+    associatedtype RenderedSubject: RenderedHostessObject
     
     
     init(mutating subject: Binding<RenderedSubject>)

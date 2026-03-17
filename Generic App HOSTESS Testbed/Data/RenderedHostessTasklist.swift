@@ -37,36 +37,6 @@ public struct RenderedHostessTasklist {
 
 
 
-extension RenderedHostessTasklist: RenderedShelfObject {
-    public typealias RawData = HostessTasklist
-    public typealias RenderError = Never
-    
-    
-    public init(renderingFrom data: RawData, using shelf: Shelf) async throws(RenderError) {
-        self.init(
-            id: data.id,
-            name: data.name,
-            notes: data.notes,
-            tasks: Self.renderCollection(data.tasks, with: shelf),
-            tags: <#T##[Tag]?#>, state: <#T##HostessObjectState#>)
-        self.id = data.id
-        self.name = data.name
-        self.tasks = await Self.renderCollection(data.tasks, with: shelf)
-    }
-    
-    
-    public func recreate(using shelf: Shelf) async -> HostessTasklist {
-        HostessTasklist(
-            id: id,
-            name: name,
-            tasks: tasks.map(\.shelfObjectReference),
-            tags: nil //tags.map(\.id)
-        )
-    }
-}
-
-
-
 extension RenderedHostessTasklist: RenderedHostessObject {
     public init(renderingFrom original: HostessTasklist, in hostess: Hostess) async {
         self.init(
@@ -85,7 +55,7 @@ extension RenderedHostessTasklist: RenderedHostessObject {
                     await originalTag.rendered(in: hostess)
                 }
                 .collect(),
-            state: state,
+            state: original.state,
         )
     }
     
@@ -99,6 +69,19 @@ extension RenderedHostessTasklist: RenderedHostessObject {
             tags: tags?.map(\.shelfObjectReference),
             state: state,
         )
+    }
+    
+    
+    public func save(in hostess: Hostess) async throws(Shelf.WriteError) {
+        do {
+            try await hostess.save(recreate(from: hostess))
+        }
+        catch {
+            switch error {
+            case .shelfError(let error):
+                throw error
+            }
+        }
     }
 }
 

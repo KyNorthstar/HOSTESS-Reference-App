@@ -17,7 +17,7 @@ import TODO
 
 private extension Hostess {
     struct Key: SwiftUI.EnvironmentKey {
-        static let defaultValue = EnvironmentValues.HostessBinding(Hostess())
+        static let defaultValue = Hostess()
     }
 }
 
@@ -25,21 +25,17 @@ private extension Hostess {
 
 public extension EnvironmentValues {
     /// The current HOSTESS DAL
-    var hostess: HostessBinding {
+    var hostess: Hostess {
         get { self[Hostess.Key.self] }
         set { self[Hostess.Key.self] = newValue }
     }
-    
-    
-    
-    typealias HostessBinding = AsyncBinding<Hostess>
 }
 
 
 
 public extension AsyncBinding where Value == Shelf {
-    static let demo = EnvironmentValues.HostessBinding {
-        .init(await .demo)
+    static let demo = Hostess {
+        await .demo
     }
     
     

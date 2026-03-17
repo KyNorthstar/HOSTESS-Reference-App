@@ -17,8 +17,8 @@ import SimpleLogging
 
 struct TasklistView: View {
     
-    @Environment(\.shelf)
-    private var shelf
+    @Environment(\.hostess)
+    private var hostess
     
     @Binding
     var tasklist: RenderedHostessTasklist
@@ -38,7 +38,7 @@ struct TasklistView: View {
                 switch taskOrError {
                 case .success(let task):
                     TaskWithSubtasksView(
-                        task: Binding {
+                        mutating: Binding {
                             task
                         }
                         set: { renderedTask in
@@ -53,7 +53,17 @@ struct TasklistView: View {
             }
             
             Button("Add Task", systemImage: "plus.circle") {
-                tasklist.tasks.append(.success(.init(id: .init(), body: "", parent: .init(id: tasklist.id), completion: .notStarted)))
+                tasklist.tasks.append(.success(
+                    .init(
+                        id: .init(),
+                        body: "",
+                        notes: nil,
+                        parent: .init(id: tasklist.id),
+                        subtasks: nil,
+                        tags: nil,
+                        completion: .notStarted,
+                    )
+                ))
             }
         }
         
@@ -73,19 +83,9 @@ struct TasklistView: View {
             return .handled
         }
         
-        .onChange(of: tasklist) { _, tasklist in
+        .onChange(of: tasklist) { //_, tasklist in
             Task {
-                try await shelf.setWrappedValue { @Sendable (shelf) throws(UpdateSetterError) in
-                    do {
-                        try await tasklist.save(in: &shelf)
-                    }
-                    catch let error as Shelf.UpdateError { // This is the only possible error
-                        throw .propagate(error)
-                    }
-                    catch {
-                        fatalError("This branch is unreachable, but Swift's typed-throws implementation is still shitty in Xcode 26.3, and this is the only way to get this code to compile.")
-                    }
-                }
+                await save(tasklist, in: hostess)
             }
         }
     }
@@ -93,6 +93,19 @@ struct TasklistView: View {
     
     
     typealias UpdateSetterError = ConcurrencyTools.UpdateSetterError<Shelf.InitError, Shelf.UpdateError>
+}
+
+
+
+private extension TasklistView {
+    func save(_ tasklist: RenderedHostessTasklist, in hostess: Hostess) async {
+        do {
+            try await tasklist.save(in: hostess)
+        }
+        catch {
+            assertionFailure("Unexpected error: \(error)")
+        }
+    }
 }
 
 

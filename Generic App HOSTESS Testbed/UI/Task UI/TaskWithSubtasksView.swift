@@ -15,6 +15,11 @@ struct TaskWithSubtasksView: View {
     @Binding
     var task: RenderedHostessTask
     
+    init(mutating task: Binding<RenderedHostessTask>) {
+        self._task = task
+    }
+    
+    
     var body: some View {
         VStack(spacing: 0) {
             SingleTaskView(task: $task)
@@ -23,7 +28,7 @@ struct TaskWithSubtasksView: View {
                 ForEach(subtasks) { subtask in
                     switch subtask {
                     case .success(let subtask):
-                        TaskWithSubtasksView(task: Binding {
+                        TaskWithSubtasksView(mutating: Binding {
                             subtask
                         } set: {
                             task.subtasks?.update(elementWithId: subtask.id, to: .success($0))
@@ -42,10 +47,22 @@ struct TaskWithSubtasksView: View {
 
 
 
+extension TaskWithSubtasksView: HostessMutatingView {
+    typealias RenderedSubject = RenderedHostessTask
+    
+    
+}
+
+
+
 #Preview {
-    ShelfLoader1(shelf: { await .demo }, .groceryList_buyAirFilter, transform: RenderedHostessTask.init) { buyAirFilter in
-        TaskWithSubtasksView(task: .constant(buyAirFilter))
-    }
+    LazyHostessPreview<TaskWithSubtasksView, _>(subjectId: .groceryList_buyAirFilter)
     .frame(minWidth: 500, minHeight: 200)
     .padding()
 }
+/*
+ Cannot convert value of type
+'nonisolated(nonsending) @Sendable (HostessTask, Hostess) async -> RenderedHostessTask'
+ to expected argument type
+'nonisolated(nonsending) (HostessTask, Shelf) async -> RenderedHostessTask'
+ */

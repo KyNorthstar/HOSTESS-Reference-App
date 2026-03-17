@@ -319,7 +319,15 @@ struct TaskIdeas {
 
 #Preview {
     @Previewable @State
-    var task = RenderedHostessTask(id: .init(), body: "Hello HOSTESS", parent: .null, completion: .notStarted)
+    var task = RenderedHostessTask(
+        id: .init(),
+        body: "Hello _**HOSTESS!**_",
+        notes: "These are _rich_ **text** [notes](https://example.com)",
+        parent: .null,
+        subtasks: nil,
+        tags: nil,
+        completion: .notStarted,
+    )
     
     SingleTaskView(task: $task)
         .padding()

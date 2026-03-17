@@ -119,23 +119,6 @@ public typealias RenderedHostessObjectOrError<Rendered: RenderedHostessObject> =
 
 
 
-//extension Result
-//where Success: RenderedShelfObject,
-//      Failure == HostessObjectRenderError<Success.RenderError>
-//{
-//    public var id: ShelfId {
-//        switch self {
-//        case .success(let object):
-//            return object.id
-//            
-//        case .failure(let error):
-//            return error.id
-//        }
-//    }
-//}
-
-
-
 extension Result: @retroactive Identifiable,
                   @retroactive ShelfIdentifiable
 where Success: RenderedHostessObject,
@@ -241,9 +224,9 @@ extension HostessObjectRenderError: Equatable {
 
 
 extension HostessPayload {
-    func rendered<Rendered: RenderedShelfObject>(using shelf: Shelf) async throws(Rendered.RenderError) -> Rendered
-    where Rendered.RawData == Self
+    func rendered<Rendered: RenderedHostessObject>(in hostess: Hostess) async -> Rendered
+    where Rendered.HostessObject == Self
     {
-        try await Rendered(renderingFrom: self, using: shelf)
+        await Rendered(renderingFrom: self, in: hostess)
     }
 }

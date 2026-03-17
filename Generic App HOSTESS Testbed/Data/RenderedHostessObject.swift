@@ -8,6 +8,7 @@
 import Foundation
 
 import HRT
+import SimpleLogging
 
 
 
@@ -15,11 +16,17 @@ import HRT
 public protocol RenderedHostessObject: AnyHostessType, ShelfIdentifiable, Equatable {
     associatedtype HostessObject: HostessIdealStoragePayload
     
+    
     init(renderingFrom original: HostessObject, in hostess: Hostess) async
+    
     
     init?(loading reference: ShelfObjectReference<HostessObject>, in hostess: Hostess) async throws(Shelf.ReadError)
     
+    
     func recreate(from hostess: Hostess) async -> HostessObject
+    
+    
+    func save(in hostess: Hostess) async throws(Shelf.WriteError)
 }
 
 
@@ -32,6 +39,36 @@ public extension RenderedHostessObject {
         
         await self.init(renderingFrom: raw, in: hostess)
     }
+    
+    
+    func saveRecursively(in hostess: Hostess) async throws(Shelf.WriteError) {
+        try await save(in: hostess)
+        
+        let mirror = Mirror(reflecting: self)
+        for child in mirror.children {
+            if let renderedChild = child.value as? (any RenderedHostessObject) {
+                do {
+                    try await renderedChild.saveRecursively(in: hostess)
+                }
+                catch {
+                    log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
+                }
+            }
+            else if let renderedChildArray = child.value as? [any RenderedHostessObject] {
+                for renderedChild in renderedChildArray {
+                    do {
+                        try await renderedChild.saveRecursively(in: hostess)
+                    }
+                    catch {
+                        log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
+                    }
+                }
+            }
+            else {
+                log(verbose: "\(type(of: child.value)) is not a rendered SHELF object")
+            }
+        }
+    }
 }
 
 
@@ -42,7 +79,7 @@ public extension ShelfObjectReference where ObjectType: HostessIdealStoragePaylo
     where Rendered: RenderedHostessObject,
           Rendered.HostessObject == ObjectType
     {
-        try await .init(loading: self, in: hostess)
+        try await Rendered(loading: self, in: hostess)
     }
     
     
@@ -60,5 +97,10 @@ public extension ShelfObjectReference where ObjectType: HostessIdealStoragePaylo
         catch {
             return .failure(.shelfReadError(objectId: self.id, error))
         }
+    }
+    
+    
+    func resolve(in hostess: Hostess) async throws(Shelf.ReadError) -> ObjectType? {
+        try await hostess.any(withId: self.id)
     }
 }

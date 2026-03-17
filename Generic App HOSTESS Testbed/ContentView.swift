@@ -19,8 +19,8 @@ struct ContentView: View {
     @Binding
     var currentAppState: AppState
     
-    @Environment(\.shelf)
-    private var shelf
+    @Environment(\.hostess)
+    private var hostess
     
     @State
     private var currentTasklist: RenderedHostessTasklist?
@@ -46,12 +46,11 @@ struct ContentView: View {
                 )
                 .onChange(of: currentTasklist, initial: true) { _, currentTasklist in
                     Task {
-                        var shelf = await shelf.wrappedValue
-                        try await currentTasklist.saveRecursively(in: &shelf)
+                        try await currentTasklist.saveRecursively(in: hostess)
                         
                         for task in currentTasklist.tasks {
                             do {
-                                try await task.get().save(in: &shelf)
+                                try await task.get().save(in: hostess)
                                 log(verbose: "Saved task \(task.id)")
                             }
                             catch {
@@ -66,14 +65,18 @@ struct ContentView: View {
                 ProgressView("Loading tasks...")
                     .task {
                         let loadedTasklist: HostessTasklist
-                        let _shelf: Shelf
                         
                         do {
-                            _shelf = await shelf.wrappedValue
-                            
-                            guard let _loadedTasklist: HostessTasklist = try await currentAppState.currentTasklist.resolve(using: _shelf)
+                            guard let _loadedTasklist: HostessTasklist = try await currentAppState.currentTasklist.resolve(in: hostess)
                             else {
-                                currentTasklist = .some(.init(id: .init(), name: "New Tasklist", tasks: []))
+                                currentTasklist = .init(
+                                    id: .init(),
+                                    name: "New Tasklist",
+                                    notes: nil,
+                                    tasks: [],
+                                    tags: nil,
+                                    state: .open)
+//                                currentTasklist = .some(.init(id: .init(), name: "New Tasklist", tasks: []))
                                 return
                             }
                             loadedTasklist = _loadedTasklist
@@ -83,7 +86,7 @@ struct ContentView: View {
                             return
                         }
                         
-                        currentTasklist = await .init(renderingFrom: loadedTasklist, using: _shelf)
+                        currentTasklist = await .init(renderingFrom: loadedTasklist, in: hostess)
                     }
             }
         }

@@ -45,41 +45,6 @@ public struct RenderedHostessTask {
 
 
 
-extension RenderedHostessTask: RenderedShelfObject {
-    public typealias RawData = HostessTask
-    public typealias RenderError = Never
-    
-    
-    
-    public init(renderingFrom data: RawData, using shelf: Shelf) async throws(Never) {
-        self.id = data.id
-        self.body = data.body
-        self.notes = data.notes
-        self.parent = data.parent
-        
-        if let data_subtasks = data.subtasks {
-            self.subtasks = await Self.renderCollection(data_subtasks, with: shelf)
-        }
-        
-        self.completion = data.completion
-    }
-    
-    
-    public func recreate(using shelf: Shelf) async -> HostessTask {
-        .init(
-            id: id,
-            body: body,
-            notes: notes,
-            parent: parent,
-            subtasks: subtasks?.map(\.shelfObjectReference),
-            tags: tags?.map(\.shelfObjectReference),
-            state: completion.taskState,
-            completionPercentage: completion.completionPercentage)
-    }
-}
-
-
-
 extension RenderedHostessTask: RenderedHostessObject {
     public typealias HostessObject = HostessTask
     
@@ -90,7 +55,7 @@ extension RenderedHostessTask: RenderedHostessObject {
     }
     
     
-    public func recreate(from hostess: Hostess) async -> HostessObject {
+    public func recreate(from hostess: Hostess) -> HostessObject {
         .init(
             id: id,
             body: body,
@@ -100,6 +65,19 @@ extension RenderedHostessTask: RenderedHostessObject {
             tags: tags?.map(\.shelfObjectReference),
             state: completion.taskState,
             completionPercentage: completion.completionPercentage)
+    }
+    
+    
+    public func save(in hostess: Hostess) async throws(Shelf.WriteError) {
+        do {
+            try await hostess.save(recreate(from: hostess))
+        }
+        catch {
+            switch error {
+            case .shelfError(let error):
+                throw error
+            }
+        }
     }
 }
 
@@ -118,7 +96,14 @@ public extension HostessTask {
                     await $0.rendered(in: hostess)
                 }
                 .collect(),
-            completion: completion)
+            tags: tags?
+                .async
+                .map {
+                    await $0.rendered(in: hostess)
+                }
+                .collect(),
+            completion: completion
+        )
     }
 }
 

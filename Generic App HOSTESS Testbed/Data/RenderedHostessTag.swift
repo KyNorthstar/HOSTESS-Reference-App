@@ -31,13 +31,30 @@ public struct RenderedHostessTag {
 
 
 extension RenderedHostessTag: RenderedHostessObject {
-    public init(renderingFrom original: HostessTag, in hostess: Hostess) {
+    public typealias HostessObject = HostessTag
+    
+    
+    
+    public init(renderingFrom original: HostessObject, in hostess: Hostess) {
         self = original.rendered(in: hostess)
     }
     
     
-    public func recreate(from hostess: Hostess) -> HostessTag {
+    public func recreate(from hostess: Hostess) -> HostessObject {
         .init(id: id, label: label)
+    }
+    
+    
+    public func save(in hostess: HRT.Hostess) async throws(Shelf.WriteError) {
+        do {
+            try await hostess.save(recreate(from: hostess))
+        }
+        catch {
+            switch error {
+            case .shelfError(let error):
+                throw error
+            }
+        }
     }
 }
 
