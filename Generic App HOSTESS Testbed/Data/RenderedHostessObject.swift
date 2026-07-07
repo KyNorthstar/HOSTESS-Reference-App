@@ -20,19 +20,31 @@ public protocol RenderedHostessObject: AnyHostessType, ShelfIdentifiable, Equata
     init(renderingFrom original: HostessObject, in hostess: Hostess) async
     
     
-    init?(loading reference: ShelfObjectReference<HostessObject>, in hostess: Hostess) async throws(Shelf.ReadError)
+    init?(loading reference: ShelfObjectReference<HostessObject>, in hostess: Hostess) async throws(AnyFetchError)
     
     
     func recreate(from hostess: Hostess) async -> HostessObject
     
     
     func save(in hostess: Hostess) async throws(Shelf.WriteError)
+    
+    
+    /// All the rendered objects nested directly within this one (subtasks, tags, etc.), for recursive operations like ``saveRecursively(in:)``.
+    ///
+    /// Failed renders are omitted; only successfully-rendered children appear here.
+    ///
+    /// - Note: This replaces the previous `Mirror`-based reflection approach, which silently failed to see children wrapped in `Result` (i.e. all of them), meaning subtasks were never actually saved recursively.
+    var renderedChildren: [any RenderedHostessObject] { get }
+    
+    
+    /// The subset of ``renderedChildren`` whose lifecycle this object owns (e.g. subtasks, but **not** tags, which are shared across objects), for recursive operations like ``deleteRecursively(from:)``
+    var ownedRenderedChildren: [any RenderedHostessObject] { get }
 }
 
 
 
 public extension RenderedHostessObject {
-    init?(loading reference: ShelfObjectReference<HostessObject>, in hostess: Hostess) async throws(Shelf.ReadError) {
+    init?(loading reference: ShelfObjectReference<HostessObject>, in hostess: Hostess) async throws(AnyFetchError) {
         guard let raw: HostessObject = try await hostess.any(withId: reference.id) else {
             return nil
         }
@@ -41,32 +53,51 @@ public extension RenderedHostessObject {
     }
     
     
+    /// Saves this object, then recursively saves everything in ``renderedChildren``.
+    ///
+    /// Failures to save a child are logged but don't stop the recursion, so one bad object can't prevent its siblings from persisting.
     func saveRecursively(in hostess: Hostess) async throws(Shelf.WriteError) {
         try await save(in: hostess)
         
-        let mirror = Mirror(reflecting: self)
-        for child in mirror.children {
-            if let renderedChild = child.value as? (any RenderedHostessObject) {
-                do {
-                    try await renderedChild.saveRecursively(in: hostess)
-                }
-                catch {
-                    log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
-                }
+        for child in renderedChildren {
+            do {
+                try await child.saveRecursively(in: hostess)
             }
-            else if let renderedChildArray = child.value as? [any RenderedHostessObject] {
-                for renderedChild in renderedChildArray {
-                    do {
-                        try await renderedChild.saveRecursively(in: hostess)
-                    }
-                    catch {
-                        log(error: error, "Failed to recusively save item \(renderedChild.id) (\(child.label ?? "<anonymous>"), a child of a \(Self.self))")
-                    }
-                }
+            catch {
+                log(error: error, "Failed to recursively save item \(child.id) (a child of a \(Self.self))")
             }
-            else {
-                log(verbose: "\(type(of: child.value)) is not a rendered SHELF object")
+        }
+    }
+    
+    
+    /// Recursively deletes everything in ``ownedRenderedChildren``, then deletes this object itself.
+    ///
+    /// Only **owned** children are deleted: a task's subtasks die with it, but shared objects like tags survive.
+    ///
+    /// Failures to delete a child are logged but don't stop the recursion.
+    ///
+    /// - Note: This only removes objects from the store. Removing references to this object (e.g. from its parent's subtasks array) is the caller's responsibility.
+    func deleteRecursively(from hostess: Hostess) async throws(AnyDeleteError) {
+        for child in ownedRenderedChildren {
+            do {
+                try await child.deleteRecursively(from: hostess)
             }
+            catch {
+                log(error: error, "Failed to recursively delete item \(child.id) (a child of a \(Self.self))")
+            }
+        }
+        
+        try await hostess.delete(objectWithId: id)
+    }
+    
+    
+    /// Like ``deleteRecursively(from:)``, but logs any error instead of throwing it. Convenient for fire-and-forget deletion from UI code.
+    func deleteRecursivelyLoggingAnyError(from hostess: Hostess) async {
+        do {
+            try await deleteRecursively(from: hostess)
+        }
+        catch {
+            log(error: error, "Failed to delete item \(id)")
         }
     }
 }
@@ -75,7 +106,7 @@ public extension RenderedHostessObject {
 
 public extension ShelfObjectReference where ObjectType: HostessIdealStoragePayload {
     
-    func rendered<Rendered>(in hostess: Hostess) async throws(Shelf.ReadError) -> Rendered?
+    func rendered<Rendered>(in hostess: Hostess) async throws(AnyFetchError) -> Rendered?
     where Rendered: RenderedHostessObject,
           Rendered.HostessObject == ObjectType
     {
@@ -95,12 +126,15 @@ public extension ShelfObjectReference where ObjectType: HostessIdealStoragePaylo
             return .success(rendered)
         }
         catch {
-            return .failure(.shelfReadError(objectId: self.id, error))
+            switch error {
+            case .shelfError(let error):
+                return .failure(.shelfReadError(objectId: self.id, error))
+            }
         }
     }
     
     
-    func resolve(in hostess: Hostess) async throws(Shelf.ReadError) -> ObjectType? {
+    func resolve(in hostess: Hostess) async throws(AnyFetchError) -> ObjectType? {
         try await hostess.any(withId: self.id)
     }
 }

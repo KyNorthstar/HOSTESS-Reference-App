@@ -30,14 +30,14 @@ public extension RangeReplaceableCollection where Self: MutableCollection, Eleme
 
 
 
-public extension RangeReplaceableCollection where Self: MutableCollection, Element: ShelfData {
-    
-    mutating func update(elementWithId id: Element.ID, to newElement: Element) {
-        guard let index = self.index(ofElementWithId: id) else {
-            append(newElement)
-            return
-        }
-        
-        self[index].update(to: newElement)
-    }
-}
+//public extension RangeReplaceableCollection where Self: MutableCollection, Element: ShelfData {
+//    
+//    mutating func update(elementWithId id: Element.ID, to newElement: Element) {
+//        guard let index = self.index(ofElementWithId: id) else {
+//            append(newElement)
+//            return
+//        }
+//        
+//        self[index] = newElement
+//    }
+//}

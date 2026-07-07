@@ -7,6 +7,7 @@
 
 import Foundation
 
+import Introspection
 import HRT
 import SHELF
 
@@ -21,3 +22,8 @@ struct AppState {
 
 extension AppState: ShelfData {}
 extension AppState: Equatable {}
+extension AppState: HostessPayload {
+    var kind: HRT.HostessObjectKind {
+        .custom(.init(domain: Introspection.bundleId, type: "appState")!) //! This should always pass initialization checks
+    }
+}

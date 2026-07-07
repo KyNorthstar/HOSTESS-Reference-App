@@ -44,20 +44,25 @@ struct ContentView: View {
                         self.currentTasklist = $0
                     }
                 )
-                .onChange(of: currentTasklist, initial: true) { _, currentTasklist in
-                    Task {
+                
+                // This is the app's one-and-only persistence path for the tasklist & its contents.
+                //
+                // `.task(id:)` cancels & restarts whenever the tasklist changes, so the sleep below
+                // acts as a free debounce: rapid keystrokes cancel each other, and only the state
+                // ~½ second after the user pauses actually hits the drive.
+                .task(id: currentTasklist) {
+                    do {
+                        try await Task.sleep(for: .milliseconds(500))
+                    }
+                    catch {
+                        return // Cancelled because a newer change arrived; that newer task will handle saving
+                    }
+                    
+                    do {
                         try await currentTasklist.saveRecursively(in: hostess)
-                        
-                        for task in currentTasklist.tasks {
-                            do {
-                                try await task.get().save(in: hostess)
-                                log(verbose: "Saved task \(task.id)")
-                            }
-                            catch {
-                                log(error: error, "Couldn't save task \(task.id)")
-                                assertionFailure()
-                            }
-                        }
+                    }
+                    catch {
+                        log(error: error, "Couldn't save tasklist \(currentTasklist.id)")
                     }
                 }
             }
@@ -69,14 +74,20 @@ struct ContentView: View {
                         do {
                             guard let _loadedTasklist: HostessTasklist = try await currentAppState.currentTasklist.resolve(in: hostess)
                             else {
+                                // No tasklist exists yet, so create a fresh one.
+                                //
+                                // CRITICAL: the new tasklist MUST be created with the ID that the app state
+                                // already references. Creating it with a fresh `.init()` ID (as before) meant
+                                // the app state pointed at an ID that never had an object saved under it, so
+                                // every launch found nothing, created another orphan, and all previous tasks
+                                // were stranded on the drive, never to be loaded again.
                                 currentTasklist = .init(
-                                    id: .init(),
+                                    id: currentAppState.currentTasklist.id,
                                     name: "New Tasklist",
                                     notes: nil,
                                     tasks: [],
                                     tags: nil,
                                     state: .open)
-//                                currentTasklist = .some(.init(id: .init(), name: "New Tasklist", tasks: []))
                                 return
                             }
                             loadedTasklist = _loadedTasklist

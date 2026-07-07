@@ -15,6 +15,7 @@ import TODO
 
 
 
+#if false
 /// Materializes a single persistent object from its identifier, then provides it to a content builder.
 ///
 /// - Note: Future versions are planned to rely on parameter packs to load arbitrarily many SHELF objects, but that is not yet possible. Those future versions will use a new type, probably named `ShelfLoader` or similar, and deprecate this type.
@@ -40,8 +41,8 @@ struct ShelfLoader1<Object: ShelfData, Content: View, Translated: Sendable>: Vie
     let content: ContentBuilder
     
     
-    @Environment(\.shelf)
-    private var environmentShelf
+    @Environment(\.hostess)
+    private var environmentHostess
     
     @State
     private var loadingState: FailableLoadingState<Translated, ShelfLoaderError> = .notStarted
@@ -219,3 +220,4 @@ enum ShelfLoaderError: Error, LocalizedError {
 //    }
 //    .padding()
 //}
+#endif

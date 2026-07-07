@@ -26,8 +26,8 @@ struct SingleTaskView: View {
     @Environment(\.debug)
     private var debug
     
-    @Environment(\.shelf)
-    private var shelf
+    @Environment(\.hostess)
+    private var hostess
     
     @Binding
     var task: RenderedHostessTask

@@ -10,7 +10,7 @@ import Foundation
 import SHELF
 import SimpleLogging
 
-
+/*
 
 /// A SHELF object transformed into a ready-to-use in-memory object, with fields resolved as appropriate so they can just be displayed to the user as-is
 @available(*, unavailable, message: "`RenderedHostessObject` replaces this")
@@ -84,11 +84,12 @@ public extension RenderedShelfObject {
 
 
 // MARK: - Never sugar
+ 
+ extension Never: ShelfObjectRenderError {}
+ */
+ 
+ 
 
 extension Never: @retroactive ShelfIdentifiable {
     public var id: ShelfId { self }
 }
-
-
-
-extension Never: ShelfObjectRenderError {}

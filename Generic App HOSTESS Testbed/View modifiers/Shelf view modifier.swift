@@ -5,6 +5,7 @@
 //  Created by Ky on 2026-02-08.
 //
 
+#if false
 import SwiftUI
 
 import FunctionTools
@@ -142,3 +143,4 @@ where TrackedValue: ShelfData,
 public enum ShelfTrackingChangesWithEnvironmentError: Error {
     case noShelfProvided
 }
+#endif

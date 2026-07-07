@@ -31,7 +31,10 @@ struct TasklistView: View {
     
     
     var body: some View {
-        Text(tasklist.name)
+        TextField("Tasklist name", text: $tasklist.name)
+            .textFieldStyle(.plain)
+            .font(.title2)
+            .multilineTextAlignment(.center)
         
         VStack(spacing: 0) {
             ForEach(tasklist.tasks) { taskOrError in
@@ -43,6 +46,9 @@ struct TasklistView: View {
                         }
                         set: { renderedTask in
                             tasklist.tasks.update(elementWithId: renderedTask.id, to: .success(renderedTask))
+                        },
+                        onDelete: {
+                            delete(task)
                         }
                     )
                     .focused($focusedTask, equals: task.id)
@@ -83,11 +89,9 @@ struct TasklistView: View {
             return .handled
         }
         
-        .onChange(of: tasklist) { //_, tasklist in
-            Task {
-                await save(tasklist, in: hostess)
-            }
-        }
+        // NOTE: The `.onChange` save which used to live here was removed on purpose.
+        // ContentView owns persistence now (debounced via `.task(id:)`), so this view
+        // saving too meant every keystroke wrote every object file twice.
     }
     
     
@@ -98,12 +102,13 @@ struct TasklistView: View {
 
 
 private extension TasklistView {
-    func save(_ tasklist: RenderedHostessTasklist, in hostess: Hostess) async {
-        do {
-            try await tasklist.save(in: hostess)
-        }
-        catch {
-            assertionFailure("Unexpected error: \(error)")
+    
+    /// Removes the given task from this tasklist, then deletes it (and everything it owns) from the store
+    func delete(_ task: RenderedHostessTask) {
+        tasklist.tasks.removeAll { task.id == $0.id }
+        
+        Task {
+            await task.deleteRecursivelyLoggingAnyError(from: hostess)
         }
     }
 }

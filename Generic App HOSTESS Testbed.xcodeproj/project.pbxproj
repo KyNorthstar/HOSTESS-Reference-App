@@ -12,6 +12,7 @@
 		0913F2D92F19A44900FA74E9 /* CollectionTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2D82F19A44900FA74E9 /* CollectionTools */; };
 		0923ADD52F18AD7C0097C52D /* RectangleTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0923ADD42F18AD7C0097C52D /* RectangleTools */; };
 		0969A3572F48D4D900BBAAEB /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 0969A3562F48D4D900BBAAEB /* AsyncAlgorithms */; };
+		0978ADA82FF498830094C131 /* Introspection in Frameworks */ = {isa = PBXBuildFile; productRef = 0978ADA72FF498830094C131 /* Introspection */; };
 		09CCA3FF2F3FAEA400C3CCDC /* LICENSE.txt in Resources */ = {isa = PBXBuildFile; fileRef = 09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */; };
 		09D395892F0DF2B40030F711 /* HRT in Frameworks */ = {isa = PBXBuildFile; productRef = 09D395882F0DF2B40030F711 /* HRT */; };
 /* End PBXBuildFile section */
@@ -40,6 +41,7 @@
 				09D395892F0DF2B40030F711 /* HRT in Frameworks */,
 				0913F2D92F19A44900FA74E9 /* CollectionTools in Frameworks */,
 				0969A3572F48D4D900BBAAEB /* AsyncAlgorithms in Frameworks */,
+				0978ADA82FF498830094C131 /* Introspection in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -89,6 +91,7 @@
 				0913F2CD2F198D7600FA74E9 /* CrossKitTypes */,
 				0913F2D82F19A44900FA74E9 /* CollectionTools */,
 				0969A3562F48D4D900BBAAEB /* AsyncAlgorithms */,
+				0978ADA72FF498830094C131 /* Introspection */,
 			);
 			productName = "HOSTESS Reference Technology";
 			productReference = 0948A9102F0B72C50060F3C6 /* Generic App HOSTESS Testbed.app */;
@@ -102,7 +105,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 2600;
-				LastUpgradeCheck = 2600;
+				LastUpgradeCheck = 2640;
 				TargetAttributes = {
 					0948A90F2F0B72C50060F3C6 = {
 						CreatedOnToolsVersion = 26.0;
@@ -125,6 +128,7 @@
 				0913F2CC2F198D7600FA74E9 /* XCRemoteSwiftPackageReference "Swift-Cross-Kit-Types" */,
 				0913F2D72F19A44900FA74E9 /* XCRemoteSwiftPackageReference "Swift-Collection-Tools" */,
 				0969A3552F48D4D900BBAAEB /* XCRemoteSwiftPackageReference "swift-async-algorithms" */,
+				0978ADA62FF498830094C131 /* XCRemoteSwiftPackageReference "Swift-Introspection" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 0948A9112F0B72C50060F3C6 /* Products */;
@@ -192,6 +196,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				DEVELOPMENT_TEAM = 26V9MK8TGP;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -215,6 +220,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
@@ -256,6 +262,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				DEVELOPMENT_TEAM = 26V9MK8TGP;
 				ENABLE_NS_ASSERTIONS = NO;
@@ -272,6 +279,7 @@
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_VERSION = 6.0;
@@ -285,6 +293,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 26V9MK8TGP;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -326,6 +335,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEAD_CODE_STRIPPING = YES;
 				DEVELOPMENT_TEAM = 26V9MK8TGP;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -386,7 +396,7 @@
 /* Begin XCRemoteSwiftPackageReference section */
 		0913F2C92F19878300FA74E9 /* XCRemoteSwiftPackageReference "Swift-Basic-Math-Tools" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:RougeWare/Swift-Basic-Math-Tools.git";
+			repositoryURL = "https://github.com/RougeWare/Swift-Basic-Math-Tools.git";
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.3.0;
@@ -424,9 +434,17 @@
 				minimumVersion = 1.1.2;
 			};
 		};
+		0978ADA62FF498830094C131 /* XCRemoteSwiftPackageReference "Swift-Introspection" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/RougeWare/Swift-Introspection.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.0;
+			};
+		};
 		09D395872F0DF2B40030F711 /* XCRemoteSwiftPackageReference "HOSTESS-Reference-Toolkit" */ = {
 			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "git@github.com:KyNorthstar/HOSTESS-Reference-Toolkit.git";
+			repositoryURL = "https://github.com/KyNorthstar/HOSTESS-Reference-Toolkit.git";
 			requirement = {
 				branch = feature/MVP;
 				kind = branch;
@@ -459,6 +477,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 0969A3552F48D4D900BBAAEB /* XCRemoteSwiftPackageReference "swift-async-algorithms" */;
 			productName = AsyncAlgorithms;
+		};
+		0978ADA72FF498830094C131 /* Introspection */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0978ADA62FF498830094C131 /* XCRemoteSwiftPackageReference "Swift-Introspection" */;
+			productName = Introspection;
 		};
 		09D395882F0DF2B40030F711 /* HRT */ = {
 			isa = XCSwiftPackageProductDependency;

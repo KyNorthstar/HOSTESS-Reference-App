@@ -146,7 +146,11 @@ where Success: RenderedHostessObject,
 
 // MARK: - HostessObjectRenderError
 
-public enum HostessObjectRenderError<RenderError: ShelfObjectRenderError>: ShelfObjectRenderError {
+public protocol HostessObjectRenderErrorProtocol: Error, Equatable, ShelfIdentifiable {}
+
+
+
+public enum HostessObjectRenderError<RenderError: HostessObjectRenderErrorProtocol>: HostessObjectRenderErrorProtocol {
     case objectNotFound(id: ShelfId)
     case shelfReadError(objectId: ShelfId, Shelf.ReadError)
     case renderError(RenderError)
@@ -220,6 +224,10 @@ extension HostessObjectRenderError: Equatable {
         }
     }
 }
+
+
+
+extension Never: HostessObjectRenderErrorProtocol {}
 
 
 
