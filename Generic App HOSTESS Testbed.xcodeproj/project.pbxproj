@@ -10,6 +10,7 @@
 		0913F2CB2F19878300FA74E9 /* BasicMathTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2CA2F19878300FA74E9 /* BasicMathTools */; };
 		0913F2CE2F198D7600FA74E9 /* CrossKitTypes in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2CD2F198D7600FA74E9 /* CrossKitTypes */; };
 		0913F2D92F19A44900FA74E9 /* CollectionTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0913F2D82F19A44900FA74E9 /* CollectionTools */; };
+		09175E0A2FFCFEB800E75319 /* AppIcon.icon in Resources */ = {isa = PBXBuildFile; fileRef = 09175E092FFCFEB800E75319 /* AppIcon.icon */; };
 		0923ADD52F18AD7C0097C52D /* RectangleTools in Frameworks */ = {isa = PBXBuildFile; productRef = 0923ADD42F18AD7C0097C52D /* RectangleTools */; };
 		0969A3572F48D4D900BBAAEB /* AsyncAlgorithms in Frameworks */ = {isa = PBXBuildFile; productRef = 0969A3562F48D4D900BBAAEB /* AsyncAlgorithms */; };
 		0978ADA82FF498830094C131 /* Introspection in Frameworks */ = {isa = PBXBuildFile; productRef = 0978ADA72FF498830094C131 /* Introspection */; };
@@ -18,6 +19,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		09175E092FFCFEB800E75319 /* AppIcon.icon */ = {isa = PBXFileReference; lastKnownFileType = folder.iconcomposer.icon; path = AppIcon.icon; sourceTree = "<group>"; };
 		0948A9102F0B72C50060F3C6 /* Generic App HOSTESS Testbed.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Generic App HOSTESS Testbed.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = LICENSE.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -51,6 +53,7 @@
 		0948A9072F0B72C50060F3C6 = {
 			isa = PBXGroup;
 			children = (
+				09175E092FFCFEB800E75319 /* AppIcon.icon */,
 				09CCA3FE2F3FAEA400C3CCDC /* LICENSE.txt */,
 				0948A9122F0B72C50060F3C6 /* Generic App HOSTESS Testbed */,
 				0948A9112F0B72C50060F3C6 /* Products */,
@@ -146,6 +149,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				09CCA3FF2F3FAEA400C3CCDC /* LICENSE.txt in Resources */,
+				09175E0A2FFCFEB800E75319 /* AppIcon.icon in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -300,6 +304,8 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HOSTESS;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;
@@ -342,6 +348,8 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HOSTESS;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphoneos*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSceneManifest_Generation[sdk=iphonesimulator*]" = YES;
 				"INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents[sdk=iphoneos*]" = YES;

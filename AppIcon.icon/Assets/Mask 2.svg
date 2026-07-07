@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="42px" height="46px" viewBox="0 0 42 46" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Mask</title>
+    <defs>
+        <path d="M26.8527989,2.62010193 L41.2277989,10.8343876 C43.0193551,11.8581341 44.125,13.7633588 44.125,15.8267857 L44.125,32.1530766 C44.125,34.2165034 43.0193551,36.1217282 41.2277989,37.1454746 L26.8527989,45.3597603 C25.0850611,46.3698962 22.9149389,46.3698962 21.1472011,45.3597603 L6.7722011,37.1454746 C4.98064487,36.1217282 3.875,34.2165034 3.875,32.1530766 L3.875,15.8267857 C3.875,13.7633588 4.98064487,11.8581341 6.7722011,10.8343876 L21.1472011,2.62010193 C22.9149389,1.60996602 25.0850611,1.60996602 26.8527989,2.62010193 Z" id="path-1"></path>
+    </defs>
+    <g id="Icon" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="HOSTESS-Icon-2026-(iOS)" transform="translate(-3, -1)">
+            <mask id="mask-2" fill="white">
+                <use xlink:href="#path-1"></use>
+            </mask>
+            <use id="Mask" fill="#FAE9D6" fill-rule="evenodd" xlink:href="#path-1"></use>
+        </g>
+    </g>
+</svg>

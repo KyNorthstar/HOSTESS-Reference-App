@@ -1,0 +1,182 @@
+{
+  "features" : [
+    "specular-location"
+  ],
+  "fill-specializations" : [
+    {
+      "value" : {
+        "automatic-gradient" : "display-p3:0.90196,0.90196,0.90196,1.00000"
+      }
+    },
+    {
+      "appearance" : "dark",
+      "value" : {
+        "automatic-gradient" : "display-p3:0.14902,0.14902,0.14902,1.00000"
+      }
+    }
+  ],
+  "groups" : [
+    {
+      "blend-mode" : "plus-lighter",
+      "layers" : [
+        {
+          "blend-mode" : "plus-lighter",
+          "glass" : false,
+          "image-name" : "+Lighter.svg",
+          "name" : "+Lighter",
+          "position" : {
+            "scale" : 21.33,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting" : "combined",
+      "shadow" : {
+        "kind" : "none",
+        "opacity" : 0.6
+      },
+      "specular" : false,
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.2
+      }
+    },
+    {
+      "blend-mode" : "plus-darker",
+      "layers" : [
+        {
+          "blend-mode" : "plus-darker",
+          "glass" : false,
+          "image-name" : "+Darker.svg",
+          "name" : "+Darker",
+          "position" : {
+            "scale" : 21.33,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting" : "combined",
+      "shadow" : {
+        "kind" : "none",
+        "opacity" : 0.6
+      },
+      "specular" : false,
+      "translucency" : {
+        "enabled" : false,
+        "value" : 0.2
+      }
+    },
+    {
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "display-p3:0.74118,0.21961,0.00000,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : "system-light"
+            }
+          ],
+          "image-name" : "U.svg",
+          "name" : "U",
+          "position" : {
+            "scale" : 21.33,
+            "translation-in-points" : [
+              0,
+              118
+            ]
+          }
+        },
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "automatic-gradient" : "display-p3:0.05098,0.27843,0.29020,1.00000"
+              }
+            },
+            {
+              "appearance" : "tinted",
+              "value" : {
+                "solid" : "extended-gray:0.57231,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Cube.svg",
+          "name" : "Cube",
+          "position" : {
+            "scale" : 21.33,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting" : "combined",
+      "shadow" : {
+        "kind" : "layer-color",
+        "opacity" : 0.6
+      },
+      "specular" : "inside",
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    },
+    {
+      "layers" : [
+        {
+          "fill-specializations" : [
+            {
+              "appearance" : "dark",
+              "value" : {
+                "solid" : "display-p3:0.14510,0.09412,0.07451,1.00000"
+              }
+            }
+          ],
+          "image-name" : "Mask 2.svg",
+          "name" : "Mask 2",
+          "position" : {
+            "scale" : 21.33,
+            "translation-in-points" : [
+              0,
+              0
+            ]
+          }
+        }
+      ],
+      "lighting" : "individual",
+      "refractivity" : {
+        "depth" : 0,
+        "enabled" : false,
+        "strength" : 0.5
+      },
+      "shadow" : {
+        "kind" : "none",
+        "opacity" : 0.6
+      },
+      "specular" : true,
+      "translucency" : {
+        "enabled" : true,
+        "value" : 0.2
+      }
+    }
+  ],
+  "supported-platforms" : {
+    "circles" : [
+      "watchOS"
+    ],
+    "squares" : "shared"
+  }
+}
